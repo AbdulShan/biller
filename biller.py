@@ -1,13 +1,19 @@
+#Tkinter Package 
 from tkinter import *
 
 
-root=Tk()
-#window=root.Tk()
-width= root.winfo_screenwidth()
-height= root.winfo_screenheight()
-root.geometry("{}x{}".format(width, height))
+#Tkinter Window Data
+if __name__=="__main__":
+    root=Tk()
+    #To set Fixed window size
+    width= root.winfo_screenwidth()
+    height= root.winfo_screenheight()
+    root.geometry("{}x{}".format(width, height))
+    root.minsize(width, height)
+    root.maxsize(width, height)
+    #Title and bgcolor
+    root.title("Billing App")
+    root.configure(bg="#18181b")
 
-root.title("Billing App")
-root.configure(bg="#18181b")
-
+#calling the package
 root.mainloop()
