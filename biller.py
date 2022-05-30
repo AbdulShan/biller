@@ -13,7 +13,9 @@ if __name__=="__main__":
     root.maxsize(width, height)
     #Title and bgcolor
     root.title("Billing App")
-    root.configure(bg="#18181b")
+    root.configure(bg="grey")
+
+
 
 #calling the package
 root.mainloop()
