@@ -1,3 +1,4 @@
+import datetime
 from tkinter import *
 import sqlite3
 from tkinter.ttk import Treeview
@@ -5,6 +6,9 @@ from tkinter.ttk import Treeview
 book_antiqua=("Book Antiqua",12,"bold")
 arial=('Arial', 12)
 
+date=datetime.date.today()
+datesorted=date.strftime("%d-%m-%Y")
+print(datesorted)
 
 
 if "__main__"==__name__:
@@ -32,6 +36,8 @@ def top_frame():
     
     customer_number_tb=Entry(top_frame,font=arial)
     customer_number_tb.grid(row=1,column=0)
+    customer_number_tb.insert(0,"_")
+    customer_number_tb.focus_set()
 
     #Name
     customer_name_lbl=Label(top_frame,text="Customer Name",font=book_antiqua)
@@ -56,7 +62,7 @@ def top_frame():
             con=sqlite3.connect('Customer_Data.sql')
             cur=con.cursor()
             customer_number=customer_number_tb.get()
-            cur.execute("create table if not exists '{}'(customer_number number(20) PRIMARY KEY NOT NULL,customer_name varchar(30),bill_number int(50))".format(customer_number))
+            cur.execute("create table if not exists '{}'(bill_number int PRIMARY KEY NOT NULL,date varchar(15),customer_name varchar(30),sl_no int,product_name varchar(100),quantity int,unit_rate int,price int)".format(customer_number))
             con.close()
         except sqlite3.Error as err:
             print("Error - ",err)
