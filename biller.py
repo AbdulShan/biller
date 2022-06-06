@@ -36,8 +36,10 @@ def top_frame():
     
     customer_number_tb=Entry(top_frame,font=arial)
     customer_number_tb.grid(row=1,column=0)
+
     customer_number_tb.insert(0,"_")
     customer_number_tb.focus_set()
+    customer_number=customer_number_tb.get()
 
     #Name
     customer_name_lbl=Label(top_frame,text="Customer Name",font=book_antiqua)
@@ -46,12 +48,16 @@ def top_frame():
     customer_name_tb=Entry(top_frame,font=arial)
     customer_name_tb.grid(row=1,column=1)
 
+    customer_name=customer_name_tb.get()
+
     #Bill Number
     bill_number_lbl=Label(top_frame,text="Bill Number",font=book_antiqua)
     bill_number_lbl.grid(row=0,column=2)
     
     bill_number_tb=Entry(top_frame,font=arial)
     bill_number_tb.grid(row=1,column=2)
+
+    bill_number=bill_number_tb.get()
 
     #Button Save
     save_btn=Button(top_frame,text="Enter",padx=10,pady=5,command=lambda:[create_data()])
@@ -61,7 +67,6 @@ def top_frame():
         try:    
             con=sqlite3.connect('Customer_Data.sql')
             cur=con.cursor()
-            customer_number=customer_number_tb.get()
             cur.execute("create table if not exists '{}'(bill_number int PRIMARY KEY NOT NULL,date varchar(15),customer_name varchar(30),sl_no int,product_name varchar(100),quantity int,unit_rate int,price int)".format(customer_number))
             con.close()
         except sqlite3.Error as err:
@@ -90,6 +95,8 @@ def top_frame():
     product_name_tb=Entry(mid_frame,font=arial)
     product_name_tb.grid(row=1,column=1)
 
+    product_name=product_name_tb.get()
+
     #Quantity
     quantity_lbl=Label(mid_frame,text="Quantity",font=book_antiqua)
     quantity_lbl.grid(row=0,column=2)
@@ -97,12 +104,16 @@ def top_frame():
     quantity_tb=Entry(mid_frame,font=arial)
     quantity_tb.grid(row=1,column=2)
 
+    quantity_ins=quantity_tb.get()
+
     #unit Rate
     unit_rate_lbl=Label(mid_frame,text="Unit Rate",font=book_antiqua)
     unit_rate_lbl.grid(row=0,column=3)
 
     unit_rate_tb=Entry(mid_frame,font=arial)
     unit_rate_tb.grid(row=1,column=3)
+
+    unit_rate_ins=unit_rate_tb.get()
 
 
     #total amount
@@ -112,9 +123,24 @@ def top_frame():
     total_amount_tb=Entry(mid_frame,font=arial)
     total_amount_tb.grid(row=1,column=4)
 
+    total_amount=total_amount_tb.get()
+
     #Submit
-    enter=Button(mid_frame,text="Enter",padx=10,pady=5)
+    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[fetch_data()])
     enter.grid(row=1,column=5)
+
+    def fetch_data():
+        try:
+            con=sqlite3.connect("Customer_Data.sql")
+            cur=con.cursor()
+            num=1
+            cur.execute("create table if not exists '{}'(bill_number int PRIMARY KEY NOT NULL,date varchar(15),customer_name varchar(30),sl_no int,product_name varchar(100),quantity int,unit_rate int,price int)".format(customer_number))
+            cur.execute("Insert into {}(bill_number,date,customer_name,sl_no,product_name,quantity,unit_rate,price)VALUES({},'{}','{}',{},'{}',{},{},{})".format(customer_number_tb,bill_number,datesorted,customer_name,num,product_name,quantity_ins,unit_rate_ins,total_amount))
+            con.commit()
+            con.close()
+        except sqlite3.Error as err:
+            print("Error - ",err)
+
 
     ##############################################################################
     #TreeView Section/ Output Section
