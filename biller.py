@@ -1,5 +1,8 @@
 from tkinter import *
 import sqlite3
+from tkinter.tix import COLUMN
+from tkinter.ttk import Treeview
+from turtle import color, colormode
 
 book_antiqua=("Book Antiqua",12,"bold")
 arial=('Arial', 12)
@@ -110,6 +113,39 @@ def top_frame():
     enter.grid(row=1,column=5)
 
     ##############################################################################
+    #TreeView Section/ Output Section
+    tv_frame = LabelFrame(root, bg="white",fg="white")
+    tv_frame.grid(row=2, column=0,sticky="w")
+    
+    #treeview element
+    tree_view= Treeview(tv_frame,selectmode='browse')
+    tree_view.pack(side="left")
+
+    #verticle scrollbar
+    vertical_scrollbar=Scrollbar(tv_frame,orient="vertical",command=tree_view.yview)
+    vertical_scrollbar.pack(side="right",fill='x')
+    tree_view.configure(xscrollcommand=vertical_scrollbar.set)
+
+    #Definning number of columns
+    tree_view["columns"]=("1","2","3","4","5")
+    #defining heading
+    tree_view["show"]='headings'
+    #modifying the size of the columns
+    tree_view.column("1",width=60)
+    tree_view.column("2",width=250)
+    tree_view.column("3",width=90)
+    tree_view.column("4",width=90)
+    tree_view.column("5",width=150)
+    #assigning heading name
+    tree_view.heading("1",text="SL no.")
+    tree_view.heading("2",text="Product Name")
+    tree_view.heading("3",text="Quantity")
+    tree_view.heading("4",text="Unit Rate")
+    tree_view.heading("5",text="Price")
+
+
+
+
                 
 top_frame()
 root.mainloop()
