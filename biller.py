@@ -1,8 +1,6 @@
 from tkinter import *
 import sqlite3
-from tkinter.tix import COLUMN
 from tkinter.ttk import Treeview
-from turtle import color, colormode
 
 book_antiqua=("Book Antiqua",12,"bold")
 arial=('Arial', 12)
