@@ -22,12 +22,12 @@ if "__main__"==__name__:
 def top_frame():  
     
     ###############################################################################
-    top_frame = LabelFrame(root, bg="white",fg="white", padx=215, pady=15)
-    top_frame.grid(row=0, column=0)
+    top_frame = LabelFrame(root, bg="white",fg="white")
+    top_frame.grid(row=0, column=0,sticky="w")
     
     #Mobile
     customer_number_lbl=Label(top_frame,text="Customer Number",font=book_antiqua)
-    customer_number_lbl.grid(row=0,column=0)
+    customer_number_lbl.grid(row=0,column=0,sticky="w")
     
     customer_number_tb=Entry(top_frame,font=arial)
     customer_number_tb.grid(row=1,column=0)
@@ -48,11 +48,11 @@ def top_frame():
 
     #Button Save
     save_btn=Button(top_frame,text="Enter",padx=10,pady=5,command=lambda:[create_data()])
-    save_btn.grid(row=2,column=1)
+    save_btn.grid(row=1,column=3,padx=(0, 368))
 
     def create_data():
         try:    
-            con=sqlite3.connect('Customer Data')
+            con=sqlite3.connect('Customer_Data.sql')
             cur=con.cursor()
             customer_number=customer_number_tb.get()
             cur.execute("create table if not exists '{}'(customer_number number(20) PRIMARY KEY NOT NULL,customer_name varchar(30),bill_number int(50))".format(customer_number))
@@ -61,8 +61,8 @@ def top_frame():
             print("Error - ",err)
 
     ################################################################################
-    mid_frame = LabelFrame(root, bg="white",fg="white", padx=30, pady=15)
-    mid_frame.grid(row=1, column=0)
+    mid_frame = LabelFrame(root, bg="white",fg="white")
+    mid_frame.grid(row=1, column=0,sticky="w")
     
 
     '''for i in range(10):
@@ -74,7 +74,7 @@ def top_frame():
     product_id_lbl.grid(row=0,column=0)
 
     product_id_tb=Entry(mid_frame,font=arial)
-    product_id_tb.grid(row=1,column=0,padx=1)
+    product_id_tb.grid(row=1,column=0)
 
     #product Name
     product_name_lbl=Label(mid_frame,text="Product Name",font=book_antiqua)
@@ -107,7 +107,7 @@ def top_frame():
 
     #Submit
     enter=Button(mid_frame,text="Enter",padx=10,pady=5)
-    enter.grid(row=3,column=2)
+    enter.grid(row=1,column=5)
 
     ##############################################################################
                 
