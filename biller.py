@@ -1,6 +1,8 @@
 import datetime
 from tkinter import *
 import sqlite3
+import traceback
+import sys
 from tkinter.ttk import Treeview
 
 book_antiqua=("Book Antiqua",12,"bold")
@@ -8,7 +10,6 @@ arial=('Arial', 12)
 
 date=datetime.date.today()
 datesorted=date.strftime("%d-%m-%Y")
-print(datesorted)
 
 
 if "__main__"==__name__:
@@ -39,7 +40,7 @@ def top_frame():
 
     customer_number_tb.insert(0,"_")
     customer_number_tb.focus_set()
-    customer_number=customer_number_tb.get()
+    
 
     #Name
     customer_name_lbl=Label(top_frame,text="Customer Name",font=book_antiqua)
@@ -48,7 +49,7 @@ def top_frame():
     customer_name_tb=Entry(top_frame,font=arial)
     customer_name_tb.grid(row=1,column=1)
 
-    customer_name=customer_name_tb.get()
+    
 
     #Bill Number
     bill_number_lbl=Label(top_frame,text="Bill Number",font=book_antiqua)
@@ -57,7 +58,7 @@ def top_frame():
     bill_number_tb=Entry(top_frame,font=arial)
     bill_number_tb.grid(row=1,column=2)
 
-    bill_number=bill_number_tb.get()
+    
 
     #Button Save
     save_btn=Button(top_frame,text="Enter",padx=10,pady=5,command=lambda:[create_data()])
@@ -67,6 +68,7 @@ def top_frame():
         try:    
             con=sqlite3.connect('Customer_Data.sql')
             cur=con.cursor()
+            customer_number=customer_number_tb.get()
             cur.execute("create table if not exists '{}'(bill_number int PRIMARY KEY NOT NULL,date varchar(15),customer_name varchar(30),sl_no int,product_name varchar(100),quantity int,unit_rate int,price int)".format(customer_number))
             con.close()
         except sqlite3.Error as err:
@@ -76,11 +78,6 @@ def top_frame():
     mid_frame = LabelFrame(root, bg="white",fg="white")
     mid_frame.grid(row=1, column=0,sticky="w")
     
-
-    '''for i in range(10):
-        spacer = Label(root, text="            ")
-        spacer.grid(row=1, column=i)'''
-
     #product ID
     product_id_lbl=Label(mid_frame,text="Product Id",font=book_antiqua)
     product_id_lbl.grid(row=0,column=0)
@@ -95,7 +92,7 @@ def top_frame():
     product_name_tb=Entry(mid_frame,font=arial)
     product_name_tb.grid(row=1,column=1)
 
-    product_name=product_name_tb.get()
+    
 
     #Quantity
     quantity_lbl=Label(mid_frame,text="Quantity",font=book_antiqua)
@@ -104,7 +101,7 @@ def top_frame():
     quantity_tb=Entry(mid_frame,font=arial)
     quantity_tb.grid(row=1,column=2)
 
-    quantity_ins=quantity_tb.get()
+    
 
     #unit Rate
     unit_rate_lbl=Label(mid_frame,text="Unit Rate",font=book_antiqua)
@@ -113,7 +110,7 @@ def top_frame():
     unit_rate_tb=Entry(mid_frame,font=arial)
     unit_rate_tb.grid(row=1,column=3)
 
-    unit_rate_ins=unit_rate_tb.get()
+    
 
 
     #total amount
@@ -123,10 +120,10 @@ def top_frame():
     total_amount_tb=Entry(mid_frame,font=arial)
     total_amount_tb.grid(row=1,column=4)
 
-    total_amount=total_amount_tb.get()
+    
 
     #Submit
-    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[fetch_data()])
+    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[fetch_data(),display()])
     enter.grid(row=1,column=5)
 
     def fetch_data():
@@ -134,12 +131,38 @@ def top_frame():
             con=sqlite3.connect("Customer_Data.sql")
             cur=con.cursor()
             num=1
-            cur.execute("create table if not exists '{}'(bill_number int PRIMARY KEY NOT NULL,date varchar(15),customer_name varchar(30),sl_no int,product_name varchar(100),quantity int,unit_rate int,price int)".format(customer_number))
-            cur.execute("Insert into {}(bill_number,date,customer_name,sl_no,product_name,quantity,unit_rate,price)VALUES({},'{}','{}',{},'{}',{},{},{})".format(customer_number_tb,bill_number,datesorted,customer_name,num,product_name,quantity_ins,unit_rate_ins,total_amount))
+            customer_number=customer_number_tb.get()
+            customer_name=customer_name_tb.get()
+            bill_number=bill_number_tb.get()
+            product_name=product_name_tb.get()
+            quantity_ins=quantity_tb.get()
+            unit_rate_ins=unit_rate_tb.get()
+            total_amount=total_amount_tb.get()
+            cur.execute("create table if not exists '{}'(bill_number int PRIMARY KEY NOT NULL, date varchar(15), customer_name varchar(30), sl_no int, product_name varchar(100), quantity int, unit_rate int, price int)".format(customer_number))
+            cur.execute("INSERT or IGNORE into '{}'(bill_number,date,customer_name,sl_no,product_name,quantity,unit_rate,price)VALUES('{}','{}','{}','{}','{}','{}','{}','{}')".format(customer_number,bill_number,datesorted,customer_name,num,product_name,quantity_ins,unit_rate_ins,total_amount))
             con.commit()
             con.close()
         except sqlite3.Error as err:
             print("Error - ",err)
+            '''print('SQLite error: %s' % (' '.join(err.args)))
+            print("Exception class is: ", err.__class__)
+            print('SQLite traceback: ')
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            print(traceback.format_exception(exc_type, exc_value, exc_tb))'''
+
+    def display():
+        try:
+            con=sqlite3.connect('Customer_Data.sql')
+            cur=con.cursor()
+            customer_number=customer_number_tb.get()
+            cur.execute("SELECT * from '{}'".format(customer_number))
+            rec=cur.fetchall()
+            for i in rec:
+                print("   ",i[0],"  |",i[1],"   |",i[2],"   |",i[3],"   ",i[4],"  |",i[5],"   |",i[6],"   |",i[7],"   ")
+            con.commit()
+            con.close()
+        except sqlite3.Error as err:
+            print("Error- ",err)
 
 
     ##############################################################################
