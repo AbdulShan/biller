@@ -115,7 +115,7 @@ def main():
         
         #Displays the total amount when clicked the #submit BUTTON
         total_amount_tb.delete(0,END)
-        total_amount=int(quantity_ins)*int(unit_rate_ins)
+        total_amount=float(quantity_ins)*float(unit_rate_ins)
         total_amount_tb.insert(0,total_amount)
 
         #To clear the textbox after clicking the button
@@ -193,7 +193,6 @@ def main():
     def clear_all():
         for item in tree_view.get_children():
             tree_view.delete(item)
-
 
 main()
 root.mainloop()
