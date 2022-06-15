@@ -100,7 +100,7 @@ def main():
     total_amount_tb.grid(row=1,column=4)
 
     #Submit
-    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[clear_all(),fetch_data(),display()])
+    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[clear_all(),fetch_data(),display(),total_price()])
     enter.grid(row=1,column=5)
 
     def fetch_data():
@@ -146,11 +146,11 @@ def main():
     
     #treeview element
     tree_view= Treeview(tv_frame,selectmode='browse')
-    tree_view.pack(side="left")
+    tree_view.grid(row=0,column=0)
 
     #verticle scrollbar
     vertical_scrollbar=Scrollbar(tv_frame,orient="vertical",command=tree_view.yview)
-    vertical_scrollbar.pack(side="right",fill='x')
+    vertical_scrollbar.grid(row=0,column=4)
     tree_view.configure(xscrollcommand=vertical_scrollbar.set)
 
     #Definning number of columns
@@ -172,7 +172,7 @@ def main():
     tree_view.heading("3",text="Quantity")
     tree_view.heading("4",text="Unit Rate")
     tree_view.heading("5",text="Price")
-    
+
     #To display the records in tree view and to add the records to the database
     def display():
         try:
@@ -194,5 +194,37 @@ def main():
         for item in tree_view.get_children():
             tree_view.delete(item)
 
+    #another Frame
+    ###############################################################################################################
+    frame_4 = LabelFrame(root, bg="white",fg="white")
+    frame_4.grid(row=3, column=0,sticky="w")
+    #Delete Button
+    delete_btn=Button(frame_4,text="Delete")
+    delete_btn.grid(row=0,column=0)
+
+    #Total
+    total_lbl=Label(frame_4,text="Total",font=book_antiqua)
+    total_lbl.grid(row=0,column=1)
+    total_tb=Entry(frame_4)
+    total_tb.grid(row=0,column=2)
+
+    def total_price():
+        try:
+            con=sqlite3.connect('Customer_Data.sql')
+            cur=con.cursor()
+            customer_number=customer_number_tb.get()
+            #cur.execute("SELECT * from '{}'".format(customer_number))
+            cur.execute("SELECT SUM(price) FROM '{}'".format(customer_number))
+            rows=cur.fetchall()
+            for row in rows:
+                print(row)
+            con.commit()
+            con.close()
+        except sqlite3.Error as err:
+            print("Error- ",err)
+
+
+#calling the main function
 main()
+#To run the tkinter window infinitely
 root.mainloop()
