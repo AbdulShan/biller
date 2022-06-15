@@ -100,7 +100,7 @@ def main():
     total_amount_tb.grid(row=1,column=4)
 
     #Submit
-    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[clear_all(),fetch_data(),display(),total_price()])
+    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[clear_all(),fetch_data(),display()])
     enter.grid(row=1,column=5)
 
     def fetch_data():
@@ -179,11 +179,19 @@ def main():
             con=sqlite3.connect('Customer_Data.sql')
             cur=con.cursor()
             customer_number=customer_number_tb.get()
+
+            #print all the inserted data
             cur.execute("SELECT * from '{}'".format(customer_number))
             rec=cur.fetchall()
             for i in rec:
-                print("   ",i[3],"  |",i[0],"   |",i[5],"   ",i[6],"  |",i[7],"   |")
                 tree_view.insert("", 'end', text ="L1",values =(i[3],i[0],i[5],i[6],i[7]))
+            
+            #print the total
+            cur.execute("SELECT SUM(price) FROM '{}'".format(customer_number))
+            rows=cur.fetchall()
+            for i in rows:
+                total_tb.delete(0, END)
+                total_tb.insert(0,i[0])
             con.commit()
             con.close()
         except sqlite3.Error as err:
@@ -193,35 +201,43 @@ def main():
     def clear_all():
         for item in tree_view.get_children():
             tree_view.delete(item)
+    
+    
 
     #another Frame
     ###############################################################################################################
     frame_4 = LabelFrame(root, bg="white",fg="white")
     frame_4.grid(row=3, column=0,sticky="w")
     #Delete Button
-    delete_btn=Button(frame_4,text="Delete")
+    delete_btn=Button(frame_4,text="Delete",command=lambda:[delete_item()])
     delete_btn.grid(row=0,column=0)
+
+
+    def delete_item():
+        curItem = tree_view.focus()
+        tree_view.item(curItem)
+        selected_items =tree_view.item(curItem)       
+        for key, value in selected_items.items():
+            if key == 'values':
+                k=value[0]
+        print(k)
+        
+        #delete from database
+        try:
+            con=sqlite3.connect('Customer_Data.sql')
+            cur=con.cursor()
+            customer_number=customer_number_tb.get()
+            cur.execute("DELETE FROM '{}' where sl_no={}".format(customer_number,k))
+            con.commit()
+        except sqlite3.Error as err:
+            print("Error- ",err)
+        tree_view.delete(curItem)
 
     #Total
     total_lbl=Label(frame_4,text="Total",font=book_antiqua)
     total_lbl.grid(row=0,column=1)
     total_tb=Entry(frame_4)
     total_tb.grid(row=0,column=2)
-
-    def total_price():
-        try:
-            con=sqlite3.connect('Customer_Data.sql')
-            cur=con.cursor()
-            customer_number=customer_number_tb.get()
-            #cur.execute("SELECT * from '{}'".format(customer_number))
-            cur.execute("SELECT SUM(price) FROM '{}'".format(customer_number))
-            rows=cur.fetchall()
-            for row in rows:
-                print(row)
-            con.commit()
-            con.close()
-        except sqlite3.Error as err:
-            print("Error- ",err)
 
 
 #calling the main function
