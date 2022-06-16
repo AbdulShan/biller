@@ -1,5 +1,6 @@
 #All necessary Packages
 from asyncio.windows_events import NULL
+from audioop import add
 from cProfile import label
 import datetime
 from msilib.schema import ComboBox
@@ -42,8 +43,10 @@ if "__main__"==__name__:
 def main():
 #Top frame Designs
 ###############################################################################
+    global top_frame
     top_frame = LabelFrame(root, bg="white",fg="white")
     top_frame.grid(row=0, column=0,sticky="w")
+    
     
     
     #Mobile
@@ -70,6 +73,7 @@ def main():
 
 #Mid frame Designs
 ################################################################################
+    global mid_frame
     mid_frame = LabelFrame(root, bg="white",fg="white")
     mid_frame.grid(row=1, column=0,sticky="w")
     
@@ -147,6 +151,7 @@ def main():
     #######################################################################################
     #List Box
     #List Box Frame
+    global list_box_frame
     list_box_frame=LabelFrame(root,bg="white",fg="white")
     list_box_frame.grid(row=2,column=0,sticky="w")
 
@@ -185,6 +190,7 @@ def main():
 
     #TreeView Section/ Output Section
     ##############################################################################
+    global tv_frame
     tv_frame = LabelFrame(root, bg="white",fg="white")
     tv_frame.grid(row=3, column=0,sticky="w")
     
@@ -250,6 +256,7 @@ def main():
 
     #another Frame
     ###############################################################################################################
+    global frame_4
     frame_4 = LabelFrame(root, bg="white",fg="white")
     frame_4.grid(row=4, column=0,sticky="w")
     #Delete Button
@@ -282,6 +289,50 @@ def main():
     total_lbl.grid(row=0,column=1)
     total_tb=Entry(frame_4)
     total_tb.grid(row=0,column=2)
+
+def make_bill():
+    top_frame.grid(row=0,column=0,sticky="w")
+    mid_frame.grid(row=1,column=0,sticky="w")
+    list_box_frame.grid(row=2,column=0,sticky="w")
+    tv_frame.grid(row=3,column=0,sticky="w")
+    frame_4.grid(row=4,column=0,sticky="w")
+
+def add_to_inventory():
+    #Top Frame Of second window !!!testing!!!
+    global top_frame_inventory
+    top_frame_inventory=LabelFrame(root)
+    top_frame_inventory.grid(row=0,column=0)
+    
+    unit_rate_lbl=Label(top_frame_inventory,text="Unit Rate",font=book_antiqua)
+    unit_rate_lbl.grid(row=0,column=3)
+    unit_rate_tb=Entry(top_frame_inventory,font=arial)
+    unit_rate_tb.grid(row=1,column=3)
+
+def clear_inventory_window():
+    top_frame_inventory.grid_forget()
+
+def clear_billing_window():
+    top_frame.grid_forget()
+    mid_frame.grid_forget()
+    list_box_frame.grid_forget()
+    tv_frame.grid_forget()
+    frame_4.grid_forget()
+
+
+#menu
+menubar = Menu(root,background='#ff8000') 
+file = Menu(menubar, tearoff=0)
+exit=Menu(menubar,tearoff=0)
+
+menubar.add_cascade(label="Menu", menu=file)
+menubar.add_cascade(label="Exit", menu=exit)
+
+file.add_command(label="Add to Inventory",command=lambda:[clear_billing_window(),add_to_inventory()])
+file.add_command(label="Make Bill",command=lambda:[clear_inventory_window(),make_bill()])
+
+exit.add_command(label="exit")
+
+root.config(menu=menubar)
 
 #calling the main function
 main()
