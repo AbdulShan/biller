@@ -83,7 +83,6 @@ def main():
     product_id_tb.grid(row=1,column=0)
 
     #product Name
-    products=['rice','wheat','bread','apple','guitar','banana','switch','drinks','biscuit','water','snacks']
     product_name_lbl=Label(mid_frame,text="Product Name",font=book_antiqua)
     product_name_lbl.grid(row=0,column=1)
     product_name_tb=Entry(mid_frame,font=arial)
@@ -154,7 +153,67 @@ def main():
     list_box_frame=LabelFrame(root,bg="white",fg="white")
     list_box_frame.grid(row=2,column=0,sticky="w")
 
-    #to print the selected item from listbox to product name textbox
+    tree_view_list= Treeview(list_box_frame,selectmode='browse')
+    tree_view_list.grid(row=0,column=0)
+
+    vertical_scrollbar=Scrollbar(list_box_frame,orient="vertical",command=tree_view_list.yview)
+    vertical_scrollbar.grid(row=0,column=4)
+    tree_view_list.configure(xscrollcommand=vertical_scrollbar.set)
+
+    tree_view_list["columns"]=("1","2")
+    tree_view_list["show"]='headings'
+
+    tree_view_list.column("1",width=250)
+    tree_view_list.column("2",width=100)
+
+    tree_view_list.heading("1",text="Product Name")
+    tree_view_list.heading("2",text="Quantity Left")
+
+    def selectItem(event):
+        curItem0 = tree_view_list.focus()
+        tree_view_list.item(curItem0)
+        selected_items =tree_view_list.item(curItem0)
+        for key, value in selected_items.items():
+            if key=='values':
+                k=value[0]
+        print(k)
+        product_name_tb.delete(0,END)
+        product_name_tb.insert(0,k)
+        
+    
+    tree_view_list.bind('<Button>',selectItem)
+
+
+    products={"rice":2,"wheat":5,"guitar":10,"dasawala":69}
+    def Scankey(event):
+        #val stores the selected value
+        val = event.widget.get()
+        if val==NULL:
+            name_data = products
+        else:
+            name_data = {}
+            for key,value in products.items():
+                if val.lower() in key.lower():
+                    name_data[key]=value
+                    Update(name_data)
+    #updates into listbox
+    def Update(data):
+        for item in tree_view_list.get_children():
+            tree_view_list.delete(item)
+        for key, value in data.items():
+           print( key, value)
+           tree_view_list.insert("",'end',text="L1",values=(key, value))
+
+    quantity={}
+    for key,value in products.items():
+        quantity[key]=value
+    Update(quantity)
+    product_name_tb.bind('<Key>', Scankey)
+
+
+    
+
+    '''#to print the selected item from listbox to product name textbox
     def getElement(event):
         selection = event.widget.curselection()
         index = selection[0]
@@ -165,29 +224,66 @@ def main():
 
     #lists products and adds to listbox
     def Scankey(event):
+        #val stores the selected value
         val = event.widget.get()
-        print(val)
         if val==NULL:
-            data = products
+            name_data = products
         else:
-            data = []
-            for item in products:
-                if val.lower() in item.lower():
-                    data.append(item)
-                    Update(data)
+            name_data = []
+            for key,value in products.items():
+                if val.lower() in key.lower():
+                    name_data.append(key)
+                    Update(name_data)
+                    print(name_data)
     #updates into listbox
     def Update(data):
         listbox.delete(0, 'end')
         for item in data:
             listbox.insert('end', item)
-    #binds the product name textbox to the scankey function
-    product_name_tb.bind('<Key>', Scankey)
     
-    #ListBox
+    def Scankey_quantity(event):
+        #val stores the selected value
+        val = event.widget.get()
+        if val==NULL:
+            num_data = products
+        else:
+            num_data = []
+            for key,value in products.items():
+                if val.lower() in key.lower():
+                    num_data.append(value)
+                    Update_quantity(num_data)
+                    print(num_data)
+    
+    def Update_quantity(data):
+        listbox2.delete(0, 'end')
+        for item in data:
+            listbox2.insert('end', item)
+            
+    #binds the product name textbox to the scankey function
+    
+    
+    #ListBox left
     listbox = Listbox(list_box_frame,width=150)
     listbox.grid(row=0,column=0)
     listbox.bind('<<ListboxSelect>>', getElement)
-    Update(products)
+    name=[]
+    for key,value in products.items():
+        name.append(key)
+    print(name)
+    Update(name)
+
+    #list box right
+    listbox2 = Listbox(list_box_frame,width=50)
+    listbox2.grid(row=0,column=1)
+    product_name_tb.bind('<Key>', Scankey_quantity)
+    product_name_tb.bind('<Key>', Scankey)
+    quantity=[]
+    for key,value in products.items():
+        quantity.append(value)
+    print(quantity)
+    Update_quantity(quantity)'''
+
+
 
 #######################################################################################
 #TreeView Section/ Output Section
@@ -271,7 +367,6 @@ def main():
         for key, value in selected_items.items():
             if key == 'values':
                 k=value[0]
-        print(k)
 
         #deletes the selected item from database
         try:
@@ -280,6 +375,7 @@ def main():
             customer_number=customer_number_tb.get()
             cur.execute("DELETE FROM '{}' where sl_no={}".format(customer_number,k))
             con.commit()
+            con.close()
         except sqlite3.Error as err:
             print("Error- ",err)
         tree_view.delete(curItem)
@@ -290,6 +386,7 @@ def main():
     total_tb=Entry(frame_4)
     total_tb.grid(row=0,column=2)
 
+#--------------------------------------------------------------------------------------------------------------------------------------------#
 #Inventory Window Object
 def add_to_inventory():
     #Top Frame Of second window !!!testing!!!
@@ -297,10 +394,36 @@ def add_to_inventory():
     top_frame_inventory=LabelFrame(root)
     top_frame_inventory.grid(row=0,column=0)
     
-    unit_rate_lbl=Label(top_frame_inventory,text="Unit Rate",font=book_antiqua)
-    unit_rate_lbl.grid(row=0,column=3)
-    unit_rate_tb=Entry(top_frame_inventory,font=arial)
-    unit_rate_tb.grid(row=1,column=3)
+    #product name
+    product_name_lbl=Label(top_frame_inventory,text="Product Name",font=book_antiqua)
+    product_name_lbl.grid(row=0,column=0)
+    product_name_tb=Entry(top_frame_inventory,font=arial)
+    product_name_tb.grid(row=1,column=0)
+
+    #product Quantity
+    product_quantity_lbl=Label(top_frame_inventory,text="Unit Rate",font=book_antiqua)
+    product_quantity_lbl.grid(row=0,column=1)
+    product_quantity_tb=Entry(top_frame_inventory,font=arial)
+    product_quantity_tb.grid(row=1,column=1)
+
+    def save_to_inventory():
+        try:
+            con=sqlite3.connect('Store_Inventory.sql')
+            cur=con.cursor()
+            product_name=product_name_tb.get()
+            product_quantity=product_quantity_tb.get()
+            cur.execute("CREATE table if not exists inventory(productname varchar, quantity int)")
+            cur.execute("INSERT into inventory(productname,quantity)VALUES('{}',{})".format(product_name,product_quantity))
+            con.commit()
+            con.close()
+        except sqlite3.Error as err:
+            print("Error- ",err)
+    
+    #submit
+    submit_button=Button(top_frame_inventory,text="Submit",command=save_to_inventory)
+    submit_button.grid(row=1,column=2)
+
+
 
 #shows all the widget Bill window and Inventory window
 def make_bill():
@@ -341,6 +464,7 @@ root.config(menu=menubar)
 
 #calling the main function
 main()
+#add_to_inventory()
 
 #To run the tkinter window infinitely
 root.mainloop()
