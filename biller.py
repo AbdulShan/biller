@@ -1,29 +1,27 @@
 #All necessary Packages
 from asyncio.windows_events import NULL
-from audioop import add
-from cProfile import label
 import datetime
-from msilib.schema import ComboBox
 from tkinter import *
 import sqlite3
-from tkinter.ttk import Combobox, Treeview
+from tkinter.ttk import Treeview
 import atexit
 from os import path
 from json import dumps, loads
-from turtle import color
 
 #font
 book_antiqua=("Book Antiqua",12,"bold")
 arial=('Arial', 12)
 
-#date and time
+#date and time, sorting date into dd/mm/yyyy
 date=datetime.date.today()
 datesorted=date.strftime("%d-%m-%Y")
 
 #Bill Number Counter
 def read_counter():
+    #reads the Bill number from the counter.json file
     return loads(open("counter.json", "r").read()) + 1 if path.exists("counter.json") else 0
 def write_counter():
+    #writes/saves the Bill Number in counter.json file
     with open("counter.json", "w") as f:
         f.write(dumps(counter))
 counter = read_counter()
@@ -33,22 +31,23 @@ atexit.register(write_counter)
 if "__main__"==__name__:
     root=Tk()
     root.title("Billing App")
-    width = root.winfo_screenwidth() #get your Windows width size 
-    height = root.winfo_screenheight() #get your Windows height size 
+    #get your Windows width/height, set size to full window
+    width = root.winfo_screenwidth()
+    height = root.winfo_screenheight()
     root.geometry("%dx%d" % (width, height))
+    #wont allow to resize window, and full screen when opening
     root.resizable(False,False)
     root.state('zoomed')
 
-
+#Billing Window Object
 def main():
 #Top frame Designs
 ###############################################################################
+    #top frame code
     global top_frame
     top_frame = LabelFrame(root, bg="white",fg="white")
     top_frame.grid(row=0, column=0,sticky="w")
-    
-    
-    
+
     #Mobile
     customer_number_lbl=Label(top_frame,text="Customer Number",font=book_antiqua)
     customer_number_lbl.grid(row=0,column=0,sticky="w")
@@ -148,13 +147,14 @@ def main():
         except sqlite3.Error as err:
             print("Error - ",err)
 
-    #######################################################################################
-    #List Box
-    #List Box Frame
+#######################################################################################
+#List Box
+#List Box Frame
     global list_box_frame
     list_box_frame=LabelFrame(root,bg="white",fg="white")
     list_box_frame.grid(row=2,column=0,sticky="w")
 
+    #to print the selected item from listbox to product name textbox
     def getElement(event):
         selection = event.widget.curselection()
         index = selection[0]
@@ -163,7 +163,7 @@ def main():
         product_name_tb.delete(0, END)
         product_name_tb.insert(0, value)
 
-    #list of products
+    #lists products and adds to listbox
     def Scankey(event):
         val = event.widget.get()
         print(val)
@@ -175,21 +175,22 @@ def main():
                 if val.lower() in item.lower():
                     data.append(item)
                     Update(data)
-
+    #updates into listbox
     def Update(data):
         listbox.delete(0, 'end')
         for item in data:
             listbox.insert('end', item)
-
+    #binds the product name textbox to the scankey function
     product_name_tb.bind('<Key>', Scankey)
-
+    
+    #ListBox
     listbox = Listbox(list_box_frame,width=150)
     listbox.grid(row=0,column=0)
     listbox.bind('<<ListboxSelect>>', getElement)
     Update(products)
 
-    #TreeView Section/ Output Section
-    ##############################################################################
+#######################################################################################
+#TreeView Section/ Output Section
     global tv_frame
     tv_frame = LabelFrame(root, bg="white",fg="white")
     tv_frame.grid(row=3, column=0,sticky="w")
@@ -230,7 +231,7 @@ def main():
             cur=con.cursor()
             customer_number=customer_number_tb.get()
 
-            #print all the inserted data
+            #print all the inserted data into the tree view
             cur.execute("SELECT * from '{}'".format(customer_number))
             rec=cur.fetchall()
             for i in rec:
@@ -251,29 +252,28 @@ def main():
     def clear_all():
         for item in tree_view.get_children():
             tree_view.delete(item)
-    
-    
 
-    #another Frame
-    ###############################################################################################################
+###############################################################################################################
+#Bottom Frame
     global frame_4
     frame_4 = LabelFrame(root, bg="white",fg="white")
     frame_4.grid(row=4, column=0,sticky="w")
-    #Delete Button
+    
+    #Deletes Button
     delete_btn=Button(frame_4,text="Delete",command=lambda:[delete_item()])
     delete_btn.grid(row=0,column=0)
 
-
+    #delete the selected item from tree_view
     def delete_item():
         curItem = tree_view.focus()
         tree_view.item(curItem)
-        selected_items =tree_view.item(curItem)       
+        selected_items =tree_view.item(curItem)
         for key, value in selected_items.items():
             if key == 'values':
                 k=value[0]
         print(k)
-        
-        #delete from database
+
+        #deletes the selected item from database
         try:
             con=sqlite3.connect('Customer_Data.sql')
             cur=con.cursor()
@@ -290,13 +290,7 @@ def main():
     total_tb=Entry(frame_4)
     total_tb.grid(row=0,column=2)
 
-def make_bill():
-    top_frame.grid(row=0,column=0,sticky="w")
-    mid_frame.grid(row=1,column=0,sticky="w")
-    list_box_frame.grid(row=2,column=0,sticky="w")
-    tv_frame.grid(row=3,column=0,sticky="w")
-    frame_4.grid(row=4,column=0,sticky="w")
-
+#Inventory Window Object
 def add_to_inventory():
     #Top Frame Of second window !!!testing!!!
     global top_frame_inventory
@@ -308,9 +302,19 @@ def add_to_inventory():
     unit_rate_tb=Entry(top_frame_inventory,font=arial)
     unit_rate_tb.grid(row=1,column=3)
 
+#shows all the widget Bill window and Inventory window
+def make_bill():
+    top_frame.grid(row=0,column=0,sticky="w")
+    mid_frame.grid(row=1,column=0,sticky="w")
+    list_box_frame.grid(row=2,column=0,sticky="w")
+    tv_frame.grid(row=3,column=0,sticky="w")
+    frame_4.grid(row=4,column=0,sticky="w")
+def make_inventory():
+    top_frame_inventory.grid(row=0,column=0)
+
+#hides all the widget Bill window and Inventory window
 def clear_inventory_window():
     top_frame_inventory.grid_forget()
-
 def clear_billing_window():
     top_frame.grid_forget()
     mid_frame.grid_forget()
@@ -318,23 +322,25 @@ def clear_billing_window():
     tv_frame.grid_forget()
     frame_4.grid_forget()
 
+##############################################################################################################
+#menu Bar
+menubar = Menu(root)
 
-#menu
-menubar = Menu(root,background='#ff8000') 
+#menus in menubar
 file = Menu(menubar, tearoff=0)
-exit=Menu(menubar,tearoff=0)
-
 menubar.add_cascade(label="Menu", menu=file)
-menubar.add_cascade(label="Exit", menu=exit)
-
 file.add_command(label="Add to Inventory",command=lambda:[clear_billing_window(),add_to_inventory()])
 file.add_command(label="Make Bill",command=lambda:[clear_inventory_window(),make_bill()])
+menubar.add_cascade(label="Exit", menu=exit)
 
+exit=Menu(menubar,tearoff=0)
 exit.add_command(label="exit")
 
+#places menu to the window
 root.config(menu=menubar)
 
 #calling the main function
 main()
+
 #To run the tkinter window infinitely
 root.mainloop()
