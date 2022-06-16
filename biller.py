@@ -1,11 +1,15 @@
 #All necessary Packages
+from asyncio.windows_events import NULL
+from cProfile import label
 import datetime
+from msilib.schema import ComboBox
 from tkinter import *
 import sqlite3
-from tkinter.ttk import Treeview
+from tkinter.ttk import Combobox, Treeview
 import atexit
 from os import path
 from json import dumps, loads
+from turtle import color
 
 #font
 book_antiqua=("Book Antiqua",12,"bold")
@@ -76,6 +80,7 @@ def main():
     product_id_tb.grid(row=1,column=0)
 
     #product Name
+    products=['rice','wheat','bread','apple','guitar','banana','switch','drinks','biscuit','water','snacks']
     product_name_lbl=Label(mid_frame,text="Product Name",font=book_antiqua)
     product_name_lbl.grid(row=0,column=1)
     product_name_tb=Entry(mid_frame,font=arial)
@@ -139,10 +144,49 @@ def main():
         except sqlite3.Error as err:
             print("Error - ",err)
 
+    #######################################################################################
+    #List Box
+    #List Box Frame
+    list_box_frame=LabelFrame(root,bg="white",fg="white")
+    list_box_frame.grid(row=2,column=0,sticky="w")
+
+    def getElement(event):
+        selection = event.widget.curselection()
+        index = selection[0]
+        value = event.widget.get(index)
+        print(value)
+        product_name_tb.delete(0, END)
+        product_name_tb.insert(0, value)
+
+    #list of products
+    def Scankey(event):
+        val = event.widget.get()
+        print(val)
+        if val==NULL:
+            data = products
+        else:
+            data = []
+            for item in products:
+                if val.lower() in item.lower():
+                    data.append(item)
+                    Update(data)
+
+    def Update(data):
+        listbox.delete(0, 'end')
+        for item in data:
+            listbox.insert('end', item)
+
+    product_name_tb.bind('<Key>', Scankey)
+
+    listbox = Listbox(list_box_frame,width=150)
+    listbox.grid(row=0,column=0)
+    listbox.bind('<<ListboxSelect>>', getElement)
+    Update(products)
+
     #TreeView Section/ Output Section
     ##############################################################################
     tv_frame = LabelFrame(root, bg="white",fg="white")
-    tv_frame.grid(row=2, column=0,sticky="w")
+    tv_frame.grid(row=3, column=0,sticky="w")
     
     #treeview element
     tree_view= Treeview(tv_frame,selectmode='browse')
@@ -207,7 +251,7 @@ def main():
     #another Frame
     ###############################################################################################################
     frame_4 = LabelFrame(root, bg="white",fg="white")
-    frame_4.grid(row=3, column=0,sticky="w")
+    frame_4.grid(row=4, column=0,sticky="w")
     #Delete Button
     delete_btn=Button(frame_4,text="Delete",command=lambda:[delete_item()])
     delete_btn.grid(row=0,column=0)
@@ -238,7 +282,6 @@ def main():
     total_lbl.grid(row=0,column=1)
     total_tb=Entry(frame_4)
     total_tb.grid(row=0,column=2)
-
 
 #calling the main function
 main()
