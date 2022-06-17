@@ -192,7 +192,7 @@ def main():
     
     tree_view_list.bind('<ButtonRelease>',selectItem)
 
-
+    global products
     products={"rice":[2,400],"wheat":[5,90],"guitar":[10,5000],"dasawala":[69,420]}
     def Scankey(event):
         #val stores the selected value
@@ -209,6 +209,7 @@ def main():
                     name_data[key]=value
                     Update(name_data)
     #updates into listbox
+    global Update
     def Update(data):
         for item in tree_view_list.get_children():
             tree_view_list.delete(item)
@@ -216,10 +217,7 @@ def main():
            print( key, value)
            tree_view_list.insert("",'end',text="L1",values=(key, value[0], value[1]))
 
-    quantity={}
-    for key,value in products.items():
-        quantity[key]=value
-    Update(quantity)
+    
     product_name_tb.bind('<Key>', Scankey)
 
 
@@ -375,6 +373,7 @@ def add_to_inventory():
     tv_frame_inventory = LabelFrame(root, bg="white",fg="white")
     #tv_frame_inventory.grid(row=1, column=0,sticky="w")
 
+    global tree_view_inventory
     tree_view_inventory= Treeview(tv_frame_inventory,selectmode='browse')
     tree_view_inventory.grid(row=0,column=0)
 
@@ -392,24 +391,28 @@ def add_to_inventory():
     tree_view_inventory.heading("1",text="Product Name")
     tree_view_inventory.heading("2",text="Quantity Left")
 
-    def display2():
-        try:
-            con=sqlite3.connect('Store_Inventory.sql')
-            cur=con.cursor()
-
-            cur.execute("SELECT * from inventory")
-            rec=cur.fetchall()
-            for i in rec:
-                tree_view_inventory.insert("", 'end', text ="L1",values =(i[0],i[2]))
-            con.commit()
-            con.close()
-        except sqlite3.Error as err:
-            print("Error- ",err)
+def display2():
+    try:
+        con=sqlite3.connect('Store_Inventory.sql')
+        cur=con.cursor()
+        cur.execute("SELECT * from inventory")
+        rec=cur.fetchall()
+        for i in rec:
+            products[i[0]]=[i[1],i[2]]
+            tree_view_inventory.insert("", 'end', text ="L1",values =(i[0],i[2]))
+        con.commit()
+        con.close()
+    except sqlite3.Error as err:
+        print("Error- ",err)
     
-    def clear_all2():
-        for item in tree_view_inventory.get_children():
-            tree_view_inventory.delete(item)
+    quantity={}
+    for key,value in products.items():
+        quantity[key]=value
+    Update(quantity)
 
+def clear_all2():
+    for item in tree_view_inventory.get_children():
+        tree_view_inventory.delete(item)
 
 ###########################################################################################
 #shows all the widget Bill window and Inventory window
@@ -454,6 +457,7 @@ root.config(menu=menubar)
 #calling the main function
 add_to_inventory()
 main()
+display2()
 
 
 #To run the tkinter window infinitely
