@@ -97,7 +97,7 @@ def main():
     #unit Rate
     unit_rate_lbl=Label(mid_frame,text="Unit Rate",font=book_antiqua)
     unit_rate_lbl.grid(row=0,column=3)
-    unit_rate_tb=Entry(mid_frame,font=arial)
+    unit_rate_tb=Entry(mid_frame,font=arial,state="disable")
     unit_rate_tb.grid(row=1,column=3)
 
     #total amount
@@ -175,18 +175,29 @@ def main():
         selected_items =tree_view_list.item(curItem0)
         for key, value in selected_items.items():
             if key=='values':
-                k=value[0]
-        print(k)
+                product_name=value[0]
+        print(product_name)
         product_name_tb.delete(0,END)
-        product_name_tb.insert(0,k)
+        product_name_tb.insert(0,product_name)
+        
+        for key, value in selected_items.items():
+            if key=='values':
+                product_price=value[2]
+        unit_rate_tb.config(state="normal")
+        unit_rate_tb.delete(0,END)
+        unit_rate_tb.insert(0,product_price)
+        unit_rate_tb.config(state="disable")
         
     
-    tree_view_list.bind('<Button>',selectItem)
+    tree_view_list.bind('<ButtonRelease>',selectItem)
 
 
-    products={"rice":2,"wheat":5,"guitar":10,"dasawala":69}
+    products={"rice":[2,400],"wheat":[5,90],"guitar":[10,5000],"dasawala":[69,420]}
     def Scankey(event):
         #val stores the selected value
+        unit_rate_tb.config(state="normal")
+        unit_rate_tb.delete(0,END)
+        unit_rate_tb.config(state="disable")
         val = event.widget.get()
         if val==NULL:
             name_data = products
@@ -202,7 +213,7 @@ def main():
             tree_view_list.delete(item)
         for key, value in data.items():
            print( key, value)
-           tree_view_list.insert("",'end',text="L1",values=(key, value))
+           tree_view_list.insert("",'end',text="L1",values=(key, value[0], value[1]))
 
     quantity={}
     for key,value in products.items():
