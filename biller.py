@@ -3,6 +3,7 @@ from asyncio.windows_events import NULL
 import datetime
 from tkinter import *
 import sqlite3
+from tkinter import font
 from tkinter.ttk import Treeview
 import atexit
 from os import path
@@ -222,80 +223,6 @@ def main():
     product_name_tb.bind('<Key>', Scankey)
 
 
-    
-
-    '''#to print the selected item from listbox to product name textbox
-    def getElement(event):
-        selection = event.widget.curselection()
-        index = selection[0]
-        value = event.widget.get(index)
-        print(value)
-        product_name_tb.delete(0, END)
-        product_name_tb.insert(0, value)
-
-    #lists products and adds to listbox
-    def Scankey(event):
-        #val stores the selected value
-        val = event.widget.get()
-        if val==NULL:
-            name_data = products
-        else:
-            name_data = []
-            for key,value in products.items():
-                if val.lower() in key.lower():
-                    name_data.append(key)
-                    Update(name_data)
-                    print(name_data)
-    #updates into listbox
-    def Update(data):
-        listbox.delete(0, 'end')
-        for item in data:
-            listbox.insert('end', item)
-    
-    def Scankey_quantity(event):
-        #val stores the selected value
-        val = event.widget.get()
-        if val==NULL:
-            num_data = products
-        else:
-            num_data = []
-            for key,value in products.items():
-                if val.lower() in key.lower():
-                    num_data.append(value)
-                    Update_quantity(num_data)
-                    print(num_data)
-    
-    def Update_quantity(data):
-        listbox2.delete(0, 'end')
-        for item in data:
-            listbox2.insert('end', item)
-            
-    #binds the product name textbox to the scankey function
-    
-    
-    #ListBox left
-    listbox = Listbox(list_box_frame,width=150)
-    listbox.grid(row=0,column=0)
-    listbox.bind('<<ListboxSelect>>', getElement)
-    name=[]
-    for key,value in products.items():
-        name.append(key)
-    print(name)
-    Update(name)
-
-    #list box right
-    listbox2 = Listbox(list_box_frame,width=50)
-    listbox2.grid(row=0,column=1)
-    product_name_tb.bind('<Key>', Scankey_quantity)
-    product_name_tb.bind('<Key>', Scankey)
-    quantity=[]
-    for key,value in products.items():
-        quantity.append(value)
-    print(quantity)
-    Update_quantity(quantity)'''
-
-
-
 #######################################################################################
 #TreeView Section/ Output Section
     global tv_frame
@@ -400,10 +327,11 @@ def main():
 #--------------------------------------------------------------------------------------------------------------------------------------------#
 #Inventory Window Object
 def add_to_inventory():
-    #Top Frame Of second window !!!testing!!!
+##########################################################################################################################
+    #Top Frame Of second window
     global top_frame_inventory
-    top_frame_inventory=LabelFrame(root)
-    top_frame_inventory.grid(row=0,column=0)
+    top_frame_inventory=LabelFrame(root,text="Add Product to inventory",font=("book_antiqua",9,'bold'))
+    #top_frame_inventory.grid(row=0,column=0)
     
     #product name
     product_name_lbl=Label(top_frame_inventory,text="Product Name",font=book_antiqua)
@@ -417,25 +345,73 @@ def add_to_inventory():
     product_quantity_tb=Entry(top_frame_inventory,font=arial)
     product_quantity_tb.grid(row=1,column=1)
 
+    #product Price
+    product_price_lbl=Label(top_frame_inventory,text="Quantity",font=book_antiqua)
+    product_price_lbl.grid(row=0,column=2)
+    product_price_tb=Entry(top_frame_inventory,font=arial)
+    product_price_tb.grid(row=1,column=2)
+
     def save_to_inventory():
         try:
             con=sqlite3.connect('Store_Inventory.sql')
             cur=con.cursor()
             product_name=product_name_tb.get()
             product_quantity=product_quantity_tb.get()
-            cur.execute("CREATE table if not exists inventory(productname varchar, quantity int)")
-            cur.execute("INSERT into inventory(productname,quantity)VALUES('{}',{})".format(product_name,product_quantity))
+            product_price=product_price_tb.get()
+            cur.execute("CREATE table if not exists inventory(productname varchar,quantity int,price int)")
+            cur.execute("INSERT into inventory(productname,quantity,price)VALUES('{}',{},{})".format(product_name,product_quantity,product_price))
             con.commit()
             con.close()
         except sqlite3.Error as err:
             print("Error- ",err)
     
     #submit
-    submit_button=Button(top_frame_inventory,text="Submit",command=save_to_inventory)
-    submit_button.grid(row=1,column=2)
+    submit_button=Button(top_frame_inventory,text="Submit",command=lambda:[clear_all2(),save_to_inventory(),display2()])
+    submit_button.grid(row=1,column=3)
+
+############################################################################################
+#TreeView frame to display the inventory Database
+    global tv_frame_inventory
+    tv_frame_inventory = LabelFrame(root, bg="white",fg="white")
+    #tv_frame_inventory.grid(row=1, column=0,sticky="w")
+
+    tree_view_inventory= Treeview(tv_frame_inventory,selectmode='browse')
+    tree_view_inventory.grid(row=0,column=0)
+
+    vertical_scrollbar=Scrollbar(tv_frame_inventory,orient="vertical",command=tree_view_inventory.yview)
+    vertical_scrollbar.grid(row=0,column=4)
+    tree_view_inventory.configure(xscrollcommand=vertical_scrollbar.set)
+
+    tree_view_inventory["columns"]=("1","2")
+
+    tree_view_inventory["show"]='headings'
+
+    tree_view_inventory.column("1",width=250)
+    tree_view_inventory.column("2",width=100)
+
+    tree_view_inventory.heading("1",text="Product Name")
+    tree_view_inventory.heading("2",text="Quantity Left")
+
+    def display2():
+        try:
+            con=sqlite3.connect('Store_Inventory.sql')
+            cur=con.cursor()
+
+            cur.execute("SELECT * from inventory")
+            rec=cur.fetchall()
+            for i in rec:
+                tree_view_inventory.insert("", 'end', text ="L1",values =(i[0],i[2]))
+            con.commit()
+            con.close()
+        except sqlite3.Error as err:
+            print("Error- ",err)
+    
+    def clear_all2():
+        for item in tree_view_inventory.get_children():
+            tree_view_inventory.delete(item)
 
 
-
+###########################################################################################
 #shows all the widget Bill window and Inventory window
 def make_bill():
     top_frame.grid(row=0,column=0,sticky="w")
@@ -444,11 +420,13 @@ def make_bill():
     tv_frame.grid(row=3,column=0,sticky="w")
     frame_4.grid(row=4,column=0,sticky="w")
 def make_inventory():
-    top_frame_inventory.grid(row=0,column=0)
+    top_frame_inventory.grid(row=0,column=0,sticky="w")
+    tv_frame_inventory.grid(row=1, column=0,sticky="w")
 
 #hides all the widget Bill window and Inventory window
 def clear_inventory_window():
     top_frame_inventory.grid_forget()
+    tv_frame_inventory.grid_forget()
 def clear_billing_window():
     top_frame.grid_forget()
     mid_frame.grid_forget()
@@ -463,7 +441,7 @@ menubar = Menu(root)
 #menus in menubar
 file = Menu(menubar, tearoff=0)
 menubar.add_cascade(label="Menu", menu=file)
-file.add_command(label="Add to Inventory",command=lambda:[clear_billing_window(),add_to_inventory()])
+file.add_command(label="Add to Inventory",command=lambda:[clear_billing_window(),make_inventory()])
 file.add_command(label="Make Bill",command=lambda:[clear_inventory_window(),make_bill()])
 menubar.add_cascade(label="Exit", menu=exit)
 
@@ -474,8 +452,9 @@ exit.add_command(label="exit")
 root.config(menu=menubar)
 
 #calling the main function
+add_to_inventory()
 main()
-#add_to_inventory()
+
 
 #To run the tkinter window infinitely
 root.mainloop()
