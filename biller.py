@@ -41,10 +41,10 @@ if "__main__"==__name__:
     root.state('zoomed')
 
 #Billing Window Object
-def main():
 #Top frame Designs
 ###############################################################################
     #top frame code
+def frame_1():
     global top_frame
     top_frame = LabelFrame(root, bg="white",fg="white")
     top_frame.grid(row=0, column=0,sticky="w")
@@ -52,6 +52,7 @@ def main():
     #Mobile
     customer_number_lbl=Label(top_frame,text="Customer Number",font=book_antiqua)
     customer_number_lbl.grid(row=0,column=0,sticky="w")
+    global customer_number_tb
     customer_number_tb=Entry(top_frame,font=arial)
     customer_number_tb.grid(row=1,column=0)
     customer_number_tb.insert(0,"_")
@@ -60,6 +61,7 @@ def main():
     #Name
     customer_name_lbl=Label(top_frame,text="Customer Name",font=book_antiqua)
     customer_name_lbl.grid(row=0,column=1)
+    global customer_name_tb
     customer_name_tb=Entry(top_frame,font=arial)
     customer_name_tb.grid(row=1,column=1)
 
@@ -73,6 +75,7 @@ def main():
 
 #Mid frame Designs
 ################################################################################
+def frame_2():
     global mid_frame
     mid_frame = LabelFrame(root, bg="white",fg="white")
     mid_frame.grid(row=1, column=0,sticky="w")
@@ -86,6 +89,7 @@ def main():
     #product Name
     product_name_lbl=Label(mid_frame,text="Product Name",font=book_antiqua)
     product_name_lbl.grid(row=0,column=1)
+    global product_name_tb
     product_name_tb=Entry(mid_frame,font=arial)
     product_name_tb.grid(row=1,column=1)
 
@@ -98,6 +102,7 @@ def main():
     #unit Rate
     unit_rate_lbl=Label(mid_frame,text="Unit Rate",font=book_antiqua)
     unit_rate_lbl.grid(row=0,column=3)
+    global unit_rate_tb
     unit_rate_tb=Entry(mid_frame,font=arial,state="disable")
     unit_rate_tb.grid(row=1,column=3)
 
@@ -150,6 +155,7 @@ def main():
 #######################################################################################
 #List Box
 #List Box Frame
+def frame_3():
     global list_box_frame
     list_box_frame=LabelFrame(root,bg="white",fg="white")
     list_box_frame.grid(row=2,column=0,sticky="w")
@@ -177,7 +183,6 @@ def main():
         for key, value in selected_items.items():
             if key=='values':
                 product_name=value[0]
-        print(product_name)
         product_name_tb.delete(0,END)
         product_name_tb.insert(0,product_name)
         
@@ -193,7 +198,7 @@ def main():
     tree_view_list.bind('<ButtonRelease>',selectItem)
 
     global products
-    products={"rice":[2,400],"wheat":[5,90],"guitar":[10,5000],"dasawala":[69,420]}
+    products={}
     def Scankey(event):
         #val stores the selected value
         unit_rate_tb.config(state="normal")
@@ -208,26 +213,31 @@ def main():
                 if val.lower() in key.lower():
                     name_data[key]=value
                     Update(name_data)
+    
     #updates into listbox
     global Update
     def Update(data):
         for item in tree_view_list.get_children():
             tree_view_list.delete(item)
         for key, value in data.items():
-           print( key, value)
            tree_view_list.insert("",'end',text="L1",values=(key, value[0], value[1]))
 
-    
     product_name_tb.bind('<Key>', Scankey)
+
+    '''#refresh button
+    refresh_btn=Button(list_box_frame,text="Refresh",command=Scankey)
+    refresh_btn.grid(row=1,column=0)'''
 
 
 #######################################################################################
 #TreeView Section/ Output Section
+def frame_4():
     global tv_frame
     tv_frame = LabelFrame(root, bg="white",fg="white")
     tv_frame.grid(row=3, column=0,sticky="w")
     
     #treeview element
+    global tree_view
     tree_view= Treeview(tv_frame,selectmode='browse')
     tree_view.grid(row=0,column=0)
 
@@ -257,6 +267,7 @@ def main():
     tree_view.heading("5",text="Price")
 
     #To display the records in tree view and to add the records to the database
+    global display
     def display():
         try:
             con=sqlite3.connect('Customer_Data.sql')
@@ -281,18 +292,20 @@ def main():
             print("Error- ",err)
     
     #to clear the Tree view
+    global clear_all
     def clear_all():
         for item in tree_view.get_children():
             tree_view.delete(item)
 
 ###############################################################################################################
 #Bottom Frame
-    global frame_4
-    frame_4 = LabelFrame(root, bg="white",fg="white")
-    frame_4.grid(row=4, column=0,sticky="w")
+def frame_5():
+    global del_total_frame
+    del_total_frame = LabelFrame(root, bg="white",fg="white")
+    del_total_frame.grid(row=4, column=0,sticky="w")
     
     #Deletes Button
-    delete_btn=Button(frame_4,text="Delete",command=lambda:[delete_item()])
+    delete_btn=Button(del_total_frame,text="Delete",command=lambda:[delete_item()])
     delete_btn.grid(row=0,column=0)
 
     #delete the selected item from tree_view
@@ -317,19 +330,19 @@ def main():
         tree_view.delete(curItem)
 
     #Total
-    total_lbl=Label(frame_4,text="Total",font=book_antiqua)
+    total_lbl=Label(del_total_frame,text="Total",font=book_antiqua)
     total_lbl.grid(row=0,column=1)
-    total_tb=Entry(frame_4)
+    global total_tb
+    total_tb=Entry(del_total_frame)
     total_tb.grid(row=0,column=2)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------#
 #Inventory Window Object
-def add_to_inventory():
+def window_2_frame_1():
 ##########################################################################################################################
     #Top Frame Of second window
     global top_frame_inventory
     top_frame_inventory=LabelFrame(root,text="Add Product to inventory",font=("book_antiqua",9,'bold'))
-    #top_frame_inventory.grid(row=0,column=0)
     
     #product name
     product_name_lbl=Label(top_frame_inventory,text="Product Name",font=book_antiqua)
@@ -369,9 +382,9 @@ def add_to_inventory():
 
 ############################################################################################
 #TreeView frame to display the inventory Database
+def window_2_frame_2():
     global tv_frame_inventory
     tv_frame_inventory = LabelFrame(root, bg="white",fg="white")
-    #tv_frame_inventory.grid(row=1, column=0,sticky="w")
 
     global tree_view_inventory
     tree_view_inventory= Treeview(tv_frame_inventory,selectmode='browse')
@@ -391,6 +404,34 @@ def add_to_inventory():
     tree_view_inventory.heading("1",text="Product Name")
     tree_view_inventory.heading("2",text="Quantity Left")
 
+####################################################################################
+#Deletion frame
+def window_2_frame_3():
+    global edit_frame_inventory
+    edit_frame_inventory = LabelFrame(root, bg="white",fg="white")
+
+    delete_btn=Button(edit_frame_inventory,text="Delete",command=lambda:[delete_item1()])
+    delete_btn.grid(row=0,column=0)
+
+    def delete_item1():
+        curItem = tree_view_inventory.focus()
+        tree_view_inventory.item(curItem)
+        selected_items =tree_view_inventory.item(curItem)
+        for key, value in selected_items.items():
+            if key == 'values':
+                name=value[0]
+        
+        try:
+            con=sqlite3.connect('Store_Inventory.sql')
+            cur=con.cursor()
+            cur.execute("DELETE FROM inventory where productname='{}'".format(name))
+            con.commit()
+            con.close()
+        except sqlite3.Error as err:
+            print("Error- ",err)
+
+        tree_view_inventory.delete(curItem)
+
 def display2():
     try:
         con=sqlite3.connect('Store_Inventory.sql')
@@ -398,17 +439,19 @@ def display2():
         cur.execute("SELECT * from inventory")
         rec=cur.fetchall()
         for i in rec:
-            products[i[0]]=[i[1],i[2]]
+            products[i[0]]=[i[2],i[1]]
             tree_view_inventory.insert("", 'end', text ="L1",values =(i[0],i[2]))
         con.commit()
         con.close()
     except sqlite3.Error as err:
         print("Error- ",err)
     
+
     quantity={}
     for key,value in products.items():
         quantity[key]=value
     Update(quantity)
+
 
 def clear_all2():
     for item in tree_view_inventory.get_children():
@@ -421,31 +464,63 @@ def make_bill():
     mid_frame.grid(row=1,column=0,sticky="w")
     list_box_frame.grid(row=2,column=0,sticky="w")
     tv_frame.grid(row=3,column=0,sticky="w")
-    frame_4.grid(row=4,column=0,sticky="w")
+    del_total_frame.grid(row=4,column=0,sticky="w")
 def make_inventory():
     top_frame_inventory.grid(row=0,column=0,sticky="w")
     tv_frame_inventory.grid(row=1, column=0,sticky="w")
+    edit_frame_inventory.grid(row=2, column=0,sticky="w")
 
 #hides all the widget Bill window and Inventory window
-def clear_inventory_window():
-    top_frame_inventory.grid_forget()
-    tv_frame_inventory.grid_forget()
-def clear_billing_window():
+def clear_window1():
     top_frame.grid_forget()
     mid_frame.grid_forget()
     list_box_frame.grid_forget()
     tv_frame.grid_forget()
-    frame_4.grid_forget()
+    del_total_frame.grid_forget()
+
+def clear_window2():
+    top_frame_inventory.grid_forget()
+    tv_frame_inventory.grid_forget()
+    edit_frame_inventory.grid_forget()
+
+##############################################################################################################
+def window1():
+    frame_1()
+    frame_2()
+    frame_3()
+    frame_4()
+    frame_5()
+
+def window2():
+    window_2_frame_1()
+    window_2_frame_2()
+    window_2_frame_3()
 
 ##############################################################################################################
 #menu Bar
+#Bug Fixer
+def disable_menu_condition():
+    flag=True
+    if flag==True:
+        file.entryconfig(1,state='disable')
+        file.entryconfig(0,state='normal')
+        flag=False
+
+def enable_menu_condition():
+    flag=True
+    if flag==True:
+        file.entryconfig(1,state='normal')
+        file.entryconfig(0,state='disable')
+        flag=False
+#Bug Fixer^^^^^ for menubar
+
 menubar = Menu(root)
 
 #menus in menubar
 file = Menu(menubar, tearoff=0)
 menubar.add_cascade(label="Menu", menu=file)
-file.add_command(label="Add to Inventory",command=lambda:[clear_billing_window(),make_inventory()])
-file.add_command(label="Make Bill",command=lambda:[clear_inventory_window(),make_bill()])
+file.add_command(label="Add to Inventory",command=lambda:[clear_window1(),clear_all2(),display2(),make_inventory(),enable_menu_condition()])
+file.add_command(label="Make Bill",command=lambda:[clear_window2(),frame_3(),display2(),make_bill(),disable_menu_condition()])
 menubar.add_cascade(label="Exit", menu=exit)
 
 exit=Menu(menubar,tearoff=0)
@@ -455,9 +530,11 @@ exit.add_command(label="exit")
 root.config(menu=menubar)
 
 #calling the main function
-add_to_inventory()
-main()
+
+window1()
+window2()
 display2()
+disable_menu_condition()
 
 
 #To run the tkinter window infinitely
