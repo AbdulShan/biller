@@ -3,10 +3,11 @@ from asyncio.windows_events import NULL
 import datetime
 from tkinter import *
 import sqlite3
-from tkinter import font
 from tkinter.ttk import Treeview
 import atexit
 from os import path
+import fpdf
+
 from json import dumps, loads
 
 #font
@@ -24,8 +25,8 @@ def read_counter():
 def write_counter():
     #writes/saves the Bill Number in counter.json file
     with open("counter.json", "w") as f:
-        f.write(dumps(counter))
-counter = read_counter()
+        f.write(dumps(bill_number))
+bill_number = read_counter()
 atexit.register(write_counter)
 
 #Tkinter window configs
@@ -55,7 +56,6 @@ def frame_1():
     global customer_number_tb
     customer_number_tb=Entry(top_frame,font=arial)
     customer_number_tb.grid(row=1,column=0)
-    customer_number_tb.insert(0,"_")
     customer_number_tb.focus_set()
 
     #Name
@@ -69,7 +69,7 @@ def frame_1():
     bill_number_lbl=Label(top_frame,text="Bill Number",font=book_antiqua)
     bill_number_lbl.grid(row=0,column=2)
     bill_number_tb=Entry(top_frame,font=arial)
-    bill_number_tb.insert(0,counter)
+    bill_number_tb.insert(0,bill_number)
     bill_number_tb.config(state='disabled')
     bill_number_tb.grid(row=1,column=2)
 
@@ -80,11 +80,11 @@ def frame_2():
     mid_frame = LabelFrame(root, bg="white",fg="white")
     mid_frame.grid(row=1, column=0,sticky="w")
     
-    #product ID
+    '''#product ID
     product_id_lbl=Label(mid_frame,text="Product Id",font=book_antiqua)
     product_id_lbl.grid(row=0,column=0)
     product_id_tb=Entry(mid_frame,font=arial)
-    product_id_tb.grid(row=1,column=0)
+    product_id_tb.grid(row=1,column=0)'''
 
     #product Name
     product_name_lbl=Label(mid_frame,text="Product Name",font=book_antiqua)
@@ -103,7 +103,7 @@ def frame_2():
     unit_rate_lbl=Label(mid_frame,text="Unit Rate",font=book_antiqua)
     unit_rate_lbl.grid(row=0,column=3)
     global unit_rate_tb
-    unit_rate_tb=Entry(mid_frame,font=arial,state="disable")
+    unit_rate_tb=Entry(mid_frame,font=arial)#,state="disable")
     unit_rate_tb.grid(row=1,column=3)
 
     #total amount
@@ -113,16 +113,16 @@ def frame_2():
     total_amount_tb.grid(row=1,column=4)
 
     #Submit
-    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[clear_all(),fetch_data(),display()])
+    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[fetch_data(),clear_all(),display()])
     enter.grid(row=1,column=5)
 
     def fetch_data():
     #Creation and Insertion of the Data into the records
         #Takes the input from the textbox
+        global product_name,customer_name,customer_number,quantity_ins,unit_rate_ins,total_amount
         product_name=product_name_tb.get()
         customer_number=customer_number_tb.get()
         customer_name=customer_name_tb.get()
-        bill_number=counter
         quantity_ins=quantity_tb.get()
         unit_rate_ins=unit_rate_tb.get()
         
@@ -140,13 +140,14 @@ def frame_2():
 
         #Creation & Insertion of the Database
         try:
-            con=sqlite3.connect("Customer_Data.sql")
+            con=sqlite3.connect("Store_Data.sql")
             cur=con.cursor()
             customer_number=customer_number_tb.get()
-            cur.execute("create table if not exists '{}'(productname varchar PRIMARY KEY NOT NULL,date varchar(15),customer_name varchar(30),sl_no int,bill_num varchar(100),quantity int,unit_rate int,price int)".format(customer_number))
-            cur.execute("SELECT * from '{}'".format(customer_number))
+            cur.execute("create table if not exists customer_data(bill_num int ,date varchar(15),customer_number int,customer_name varchar(30),sl_no int,productname varchar,quantity int,unit_rate int,price int)")
+            cur.execute("SELECT * from customer_data".format(customer_number))
+            global count
             count=(len(cur.fetchall())+1)
-            cur.execute("INSERT into '{}'(productname,date,customer_name,sl_no,bill_num,quantity,unit_rate,price)VALUES('{}','{}','{}',{},{},{},{},{})".format(customer_number,product_name,datesorted,customer_name,count,bill_number,quantity_ins,unit_rate_ins,total_amount))
+            cur.execute("INSERT into customer_data(bill_num,date,customer_number,customer_name,sl_no,productname,quantity,unit_rate,price)VALUES({},'{}',{},'{}',{},'{}',{},{},{})".format(bill_number,datesorted,customer_number,customer_name,count,product_name,quantity_ins,unit_rate_ins,total_amount))
             con.commit()
             con.close()
         except sqlite3.Error as err:
@@ -189,10 +190,10 @@ def frame_3():
         for key, value in selected_items.items():
             if key=='values':
                 product_price=value[2]
-        unit_rate_tb.config(state="normal")
+        #unit_rate_tb.config(state="normal")
         unit_rate_tb.delete(0,END)
         unit_rate_tb.insert(0,product_price)
-        unit_rate_tb.config(state="disable")
+        #unit_rate_tb.config(state="disable")
         
     
     tree_view_list.bind('<ButtonRelease>',selectItem)
@@ -201,9 +202,9 @@ def frame_3():
     products={}
     def Scankey(event):
         #val stores the selected value
-        unit_rate_tb.config(state="normal")
+        #unit_rate_tb.config(state="normal")
         unit_rate_tb.delete(0,END)
-        unit_rate_tb.config(state="disable")
+        #unit_rate_tb.config(state="disable")
         val = event.widget.get()
         if val==NULL:
             name_data = products
@@ -223,10 +224,6 @@ def frame_3():
            tree_view_list.insert("",'end',text="L1",values=(key, value[0], value[1]))
 
     product_name_tb.bind('<Key>', Scankey)
-
-    '''#refresh button
-    refresh_btn=Button(list_box_frame,text="Refresh",command=Scankey)
-    refresh_btn.grid(row=1,column=0)'''
 
 
 #######################################################################################
@@ -270,18 +267,23 @@ def frame_4():
     global display
     def display():
         try:
-            con=sqlite3.connect('Customer_Data.sql')
+            con=sqlite3.connect('Store_Data.sql')
             cur=con.cursor()
             customer_number=customer_number_tb.get()
-
+            cur.execute("CREATE TABLE IF NOT EXISTS final_bill(bill_num1 int,productname1 varchar,quantity1 int,unit_rate1 int,price1 int)")
+            cur.execute("INSERT INTO final_bill(bill_num1,productname1,quantity1,unit_rate1,price1)VALUES({},'{}',{},{},{})".format(bill_number,product_name,quantity_ins,unit_rate_ins,total_amount))
             #print all the inserted data into the tree view
-            cur.execute("SELECT * from '{}'".format(customer_number))
+            cur.execute("SELECT rowid,productname1,quantity1,unit_rate1,price1 FROM final_bill where bill_num1={}".format(bill_number))
             rec=cur.fetchall()
             for i in rec:
-                tree_view.insert("", 'end', text ="L1",values =(i[3],i[0],i[5],i[6],i[7]))
+                tree_view.insert("", 'end', text ="L1",values =(i[0],i[1],i[2],i[3],i[4]))
+            #cur.execute("SELECT sl_no,productname,quantity,unit_rate,price FROM customer_data ORDER BY sl_no ASC")
             
+
+
+
             #print the total
-            cur.execute("SELECT SUM(price) FROM '{}'".format(customer_number))
+            cur.execute("SELECT SUM(price1) FROM final_bill")
             rows=cur.fetchall()
             for i in rows:
                 total_tb.delete(0, END)
@@ -319,15 +321,26 @@ def frame_5():
 
         #deletes the selected item from database
         try:
-            con=sqlite3.connect('Customer_Data.sql')
+            con=sqlite3.connect('Store_Data.sql')
             cur=con.cursor()
             customer_number=customer_number_tb.get()
-            cur.execute("DELETE FROM '{}' where sl_no={}".format(customer_number,k))
+            cur.execute("DELETE FROM customer_data where sl_no={}".format(k))
             con.commit()
             con.close()
         except sqlite3.Error as err:
             print("Error- ",err)
         tree_view.delete(curItem)
+    
+    def drop_table():
+        try:
+            con=sqlite3.connect('Store_Data.sql')
+            cur=con.cursor()
+            cur.execute("DROP TABLE final_bill")
+            con.commit()
+            con.close()
+        except sqlite3.Error as err:
+            print("Error- ",err)
+
 
     #Total
     total_lbl=Label(del_total_frame,text="Total",font=book_antiqua)
@@ -335,6 +348,10 @@ def frame_5():
     global total_tb
     total_tb=Entry(del_total_frame)
     total_tb.grid(row=0,column=2)
+
+    #Print Bill
+    printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[drop_table()])
+    printbill_btn.grid(row=0,column=3)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------#
 #Inventory Window Object
@@ -364,13 +381,13 @@ def window_2_frame_1():
 
     def save_to_inventory():
         try:
-            con=sqlite3.connect('Store_Inventory.sql')
+            con=sqlite3.connect('Store_Data.sql')
             cur=con.cursor()
             product_name=product_name_tb.get()
             product_quantity=product_quantity_tb.get()
             product_price=product_price_tb.get()
             cur.execute("CREATE table if not exists inventory(productname varchar,quantity int,price int)")
-            cur.execute("INSERT into inventory(productname,quantity,price)VALUES('{}',{},{})".format(product_name,product_quantity,product_price))
+            cur.execute("INSERT OR REPLACE into inventory(productname,quantity,price)VALUES('{}',{},{})".format(product_name,product_quantity,product_price))
             con.commit()
             con.close()
         except sqlite3.Error as err:
@@ -422,7 +439,7 @@ def window_2_frame_3():
                 name=value[0]
         
         try:
-            con=sqlite3.connect('Store_Inventory.sql')
+            con=sqlite3.connect('Store_Data.sql')
             cur=con.cursor()
             cur.execute("DELETE FROM inventory where productname='{}'".format(name))
             con.commit()
@@ -434,7 +451,7 @@ def window_2_frame_3():
 
 def display2():
     try:
-        con=sqlite3.connect('Store_Inventory.sql')
+        con=sqlite3.connect('Store_Data.sql')
         cur=con.cursor()
         cur.execute("SELECT * from inventory")
         rec=cur.fetchall()
@@ -528,6 +545,14 @@ exit.add_command(label="exit")
 
 #places menu to the window
 root.config(menu=menubar)
+
+#pdf output generator
+pdf= fpdf.FPDF()
+pdf.add_page()
+pdf.set_font("Arial", size = 15)
+pdf.cell(200, 10, txt = "GeeksforGeeks",ln = 1, align = 'C')
+pdf.output("testings.pdf")
+
 
 #calling the main function
 
