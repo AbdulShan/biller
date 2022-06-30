@@ -6,6 +6,7 @@ import sqlite3
 from tkinter.ttk import Treeview
 import atexit
 from os import path
+from turtle import left
 import fpdf
 
 from json import dumps, loads
@@ -549,18 +550,65 @@ root.config(menu=menubar)
 #pdf output generator
 pdf= fpdf.FPDF()
 pdf.add_page()
-pdf.set_font("Arial", size = 15)
-pdf.cell(200, 10, txt = "GeeksforGeeks",ln = 1, align = 'C')
+
+def pdf_arial():
+    pdf.set_font("Arial", size = 12)
+
+def pdf_arial_bold():
+    pdf.set_font("Arial",style="B", size = 12)
+
+#invoice
+pdf.set_font("Times",style="BU", size = 55)
+pdf.cell(93, 28, txt = "INVOICE",ln = 2, align = 'L', border=1)
+
+
+#celspacer
+def cellspacer():
+    pdf.cell(30, 7,ln = 0, align = 'L', border=1)
+
+def cellspacer_bottom():
+    pdf.cell(30, 5,ln = 1, align = 'L', border=1)
+
+
+#row1
+pdf.set_font("Arial",style="B", size = 12)
+pdf.cell(30, 5, txt = "Bill Number",ln = 0, align = 'L', border=1)
+cellspacer()
+pdf.cell(30, 5, txt = "Date of Issue",ln = 1, align = 'L', border=1)
+
+#row2
+pdf_arial()
+pdf.cell(30, 7, txt = "{}".format(bill_number),ln = 0, align = 'L', border=1)
+cellspacer()
+pdf.cell(30, 7, txt = "{}".format(datesorted),ln = 1, align = 'L', border=1)
+
+#row3
+cellspacer_bottom()
+
+#row4
+pdf_arial_bold()
+pdf.cell(30, 5, txt = "Billed To",ln = 0, align = 'L', border=1)
+cellspacer()
+pdf.cell(30, 5, txt = "The-Mart",ln = 1, align = 'L', border=1)
+
+#row5
+pdf_arial()
+pdf.cell(30, 7, txt = "{}".format("customer_name"),ln = 0, align = 'L', border=1)
+cellspacer()
+pdf.cell(30, 7, txt = "{}".format("5th Street"),ln = 1, align = 'L', border=1)
+
+
+
 pdf.output("testings.pdf")
 
 
 #calling the main function
 
-window1()
-window2()
-display2()
-disable_menu_condition()
+#window1()
+#window2()
+#display2()
+#disable_menu_condition()
 
 
 #To run the tkinter window infinitely
-root.mainloop()
+#root.mainloop()
