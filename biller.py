@@ -604,11 +604,11 @@ pdf.output("testings.pdf")
 
 #calling the main function
 
-#window1()
-#window2()
-#display2()
-#disable_menu_condition()
+window1()
+window2()
+display2()
+disable_menu_condition()
 
 
 #To run the tkinter window infinitely
-#root.mainloop()
+root.mainloop()
