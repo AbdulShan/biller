@@ -351,7 +351,7 @@ def frame_5():
     total_tb.grid(row=0,column=2)
 
     #Print Bill
-    printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[drop_table()])
+    printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[pdf_output(),drop_table()])
     printbill_btn.grid(row=0,column=3)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------#
@@ -547,59 +547,113 @@ exit.add_command(label="exit")
 #places menu to the window
 root.config(menu=menubar)
 
+###################################################################################
+#PDF
 #pdf output generator
-pdf= fpdf.FPDF()
-pdf.add_page()
+def pdf_output():
+    pdf= fpdf.FPDF()
+    pdf.add_page()
 
-def pdf_arial():
-    pdf.set_font("Arial", size = 12)
+    def pdf_arial():
+        pdf.set_font("Arial", size = 12)
 
-def pdf_arial_bold():
+    def pdf_arial_bold():
+        pdf.set_font("Arial",style="B", size = 12)
+
+    #invoice
+    pdf.set_font("Times",style="BU", size = 55)
+    pdf.cell(93, 28, txt = "INVOICE",ln = 2, align = 'L', border=0)
+
+
+    #celspacer
+    def cellspacer():
+        pdf.cell(30, 7,ln = 0, align = 'L', border=0)
+
+    def cellspacer_bottom():
+        pdf.cell(30, 5,ln = 1, align = 'L', border=0)
+
+
+    #row1
     pdf.set_font("Arial",style="B", size = 12)
+    pdf.cell(30, 5, txt = "Bill Number",ln = 0, align = 'L', border=0)
+    cellspacer()
+    pdf.cell(30, 5, txt = "Date of Issue",ln = 1, align = 'L', border=0)
 
-#invoice
-pdf.set_font("Times",style="BU", size = 55)
-pdf.cell(93, 28, txt = "INVOICE",ln = 2, align = 'L', border=1)
+    #row2
+    pdf_arial()
+    pdf.cell(30, 7, txt = "{}".format(bill_number),ln = 0, align = 'L', border=0)
+    cellspacer()
+    pdf.cell(30, 7, txt = "{}".format(datesorted),ln = 1, align = 'L', border=0)
+
+    #row3
+    cellspacer_bottom()
+
+    #row4
+    pdf_arial_bold()
+    pdf.cell(30, 5, txt = "Billed To",ln = 0, align = 'L', border=0)
+    cellspacer()
+    pdf.cell(30, 5, txt = "The-Mart",ln = 1, align = 'L', border=0)
+
+    #row5
+    pdf_arial()
+    pdf.cell(30, 7, txt = "{}".format("customer_name"),ln = 0, align = 'L', border=0)
+    cellspacer()
+    pdf.cell(30, 7, txt = "{}".format("5th Street"),ln = 1, align = 'L', border=0)
+    cellspacer()
+    cellspacer()
+    pdf.cell(30, 7, txt = "{}".format("#company mail"),ln = 1, align = 'L', border=0)
+    cellspacer()
+    cellspacer()
+    pdf.cell(30, 7, txt = "{}".format("#contact number"),ln = 1, align = 'L', border=0)
+    cellspacer_bottom()
+    cellspacer_bottom()
+    pdf_arial_bold()
+    pdf.cell(10, 7, txt = "{}".format("no."),ln = 0, align = 'L', border=0)
+    pdf.cell(30, 7, txt = "{}".format("Description"),ln = 0, align = 'L', border=0)
+    cellspacer()
+    cellspacer()
+    pdf.cell(30, 7, txt = "{}".format("Units/Kg"),ln = 0, align = 'L', border=0)
+    pdf.cell(30, 7, txt = "{}".format("Unit Cost"),ln = 0, align = 'L', border=0)
+    pdf.cell(30, 7, txt = "{}".format("Amount"),ln = 1, align = 'L', border=0)
+    pdf.line(11, 99, 187, 99)
+
+    cellspacer_bottom()
+    try:
+            con=sqlite3.connect('Store_Data.sql')
+            cur=con.cursor()
+            cur.execute("CREATE TABLE IF NOT EXISTS final_bill(bill_num1 int,productname1 varchar,quantity1 int,unit_rate1 int,price1 int)")
+            cur.execute("SELECT rowid,productname1,quantity1,unit_rate1,price1 FROM final_bill where bill_num1={}".format(bill_number))
+            rec=cur.fetchall()
+            for i in rec:
+                number_of_items=len(rec)
+                pdf_arial()
+                pdf.cell(10, 7, txt = "{}".format(i[0]),ln = 0, align = 'L', border=0)
+                pdf.cell(30, 7, txt = "{}".format(i[1]),ln = 0, align = 'L', border=0)
+                cellspacer()
+                cellspacer()
+                pdf.cell(30, 7, txt = "{}".format(i[2]),ln = 0, align = 'L', border=0)
+                pdf.cell(30, 7, txt = "{}".format(i[3]),ln = 0, align = 'L', border=0)
+                pdf.cell(30, 7, txt = "{}".format(i[4]),ln = 1, align = 'L', border=0)
+            cur.execute("SELECT SUM(price1) FROM final_bill")
+            total_pdf=cur.fetchall()
+            total_pdf1=total_pdf[0]
+            
+    except sqlite3.Error as err:
+        print("Error: ",err)
 
 
-#celspacer
-def cellspacer():
-    pdf.cell(30, 7,ln = 0, align = 'L', border=1)
-
-def cellspacer_bottom():
-    pdf.cell(30, 5,ln = 1, align = 'L', border=1)
-
-
-#row1
-pdf.set_font("Arial",style="B", size = 12)
-pdf.cell(30, 5, txt = "Bill Number",ln = 0, align = 'L', border=1)
-cellspacer()
-pdf.cell(30, 5, txt = "Date of Issue",ln = 1, align = 'L', border=1)
-
-#row2
-pdf_arial()
-pdf.cell(30, 7, txt = "{}".format(bill_number),ln = 0, align = 'L', border=1)
-cellspacer()
-pdf.cell(30, 7, txt = "{}".format(datesorted),ln = 1, align = 'L', border=1)
-
-#row3
-cellspacer_bottom()
-
-#row4
-pdf_arial_bold()
-pdf.cell(30, 5, txt = "Billed To",ln = 0, align = 'L', border=1)
-cellspacer()
-pdf.cell(30, 5, txt = "The-Mart",ln = 1, align = 'L', border=1)
-
-#row5
-pdf_arial()
-pdf.cell(30, 7, txt = "{}".format("customer_name"),ln = 0, align = 'L', border=1)
-cellspacer()
-pdf.cell(30, 7, txt = "{}".format("5th Street"),ln = 1, align = 'L', border=1)
-
-
-
-pdf.output("testings.pdf")
+    
+    pdf.cell(30, 7, txt = "{}".format("-----------------------------------------------------------------------------------------------------------------------------"),ln = 1, align = 'L', border=0)
+    pdf.cell(10, 7,ln = 0, align = 'L', border=0)
+    cellspacer()
+    cellspacer()
+    cellspacer()
+    cellspacer()
+    pdf_arial_bold()
+    pdf.cell(30, 7, txt = "{}".format("Total"),ln = 0, align = 'L', border=0)
+    pdf_arial()
+    pdf.cell(30, 7, txt = "{}".format(total_pdf1[0]),ln = 1, align = 'L', border=0)
+    pdf.output("testings.pdf")
 
 
 #calling the main function
@@ -608,7 +662,6 @@ window1()
 window2()
 display2()
 disable_menu_condition()
-
-
-#To run the tkinter window infinitely
+#pdf_output()
+#To run the tkinter window
 root.mainloop()
