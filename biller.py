@@ -1,4 +1,5 @@
 #All necessary Packages
+from ast import Break
 from asyncio.windows_events import NULL
 import datetime
 from tkinter import *
@@ -8,7 +9,6 @@ import atexit
 from os import path
 from turtle import left
 import fpdf
-
 from json import dumps, loads
 
 #font
@@ -222,7 +222,7 @@ def frame_3():
         for item in tree_view_list.get_children():
             tree_view_list.delete(item)
         for key, value in data.items():
-           tree_view_list.insert("",'end',text="L1",values=(key, value[0], value[1]))
+           tree_view_list.insert("",'end',text="L1",values=(key, value[1]))
 
     product_name_tb.bind('<Key>', Scankey)
 
@@ -279,8 +279,6 @@ def frame_4():
             for i in rec:
                 tree_view.insert("", 'end', text ="L1",values =(i[0],i[1],i[2],i[3],i[4]))
             #cur.execute("SELECT sl_no,productname,quantity,unit_rate,price FROM customer_data ORDER BY sl_no ASC")
-            
-
 
 
             #print the total
@@ -351,7 +349,7 @@ def frame_5():
     total_tb.grid(row=0,column=2)
 
     #Print Bill
-    printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[pdf_output(),drop_table()])
+    printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[pdf_output(),drop_table(),clear_all()])
     printbill_btn.grid(row=0,column=3)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------#
@@ -369,13 +367,14 @@ def window_2_frame_1():
     product_name_tb.grid(row=1,column=0)
 
     #product Quantity
-    product_quantity_lbl=Label(top_frame_inventory,text="Unit Rate",font=book_antiqua)
+    product_quantity_lbl=Label(top_frame_inventory,text="Quantity",font=book_antiqua)
     product_quantity_lbl.grid(row=0,column=1)
+    global product_quantity_tb
     product_quantity_tb=Entry(top_frame_inventory,font=arial)
     product_quantity_tb.grid(row=1,column=1)
 
     #product Price
-    product_price_lbl=Label(top_frame_inventory,text="Quantity",font=book_antiqua)
+    product_price_lbl=Label(top_frame_inventory,text="Unit Rate",font=book_antiqua)
     product_price_lbl.grid(row=0,column=2)
     product_price_tb=Entry(top_frame_inventory,font=arial)
     product_price_tb.grid(row=1,column=2)
@@ -384,11 +383,18 @@ def window_2_frame_1():
         try:
             con=sqlite3.connect('Store_Data.sql')
             cur=con.cursor()
-            product_name=product_name_tb.get()
+            global product_name_window2
+            product_name_window2=product_name_tb.get()
             product_quantity=product_quantity_tb.get()
             product_price=product_price_tb.get()
             cur.execute("CREATE table if not exists inventory(productname varchar,quantity int,price int)")
-            cur.execute("INSERT OR REPLACE into inventory(productname,quantity,price)VALUES('{}',{},{})".format(product_name,product_quantity,product_price))
+            cur.execute("INSERT into inventory(productname,quantity,price)VALUES('{}',{},{})".format(product_name_window2,product_quantity,product_price))
+            cur.execute("DELETE FROM inventory WHERE rowid NOT IN (SELECT min(rowid) FROM inventory GROUP BY productname)")
+            cur.execute("SELECT quantity from inventory where productname='{}'".format(product_name_window2))
+            rec=cur.fetchall()
+            for i in rec:
+                print(i[0])
+            cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(i[0]+int(product_quantity),product_name_window2))
             con.commit()
             con.close()
         except sqlite3.Error as err:
@@ -449,7 +455,7 @@ def window_2_frame_3():
             print("Error- ",err)
 
         tree_view_inventory.delete(curItem)
-
+#----------------------------------------------------------------------------------------------------- work in progress
 def display2():
     try:
         con=sqlite3.connect('Store_Data.sql')
@@ -458,7 +464,7 @@ def display2():
         rec=cur.fetchall()
         for i in rec:
             products[i[0]]=[i[2],i[1]]
-            tree_view_inventory.insert("", 'end', text ="L1",values =(i[0],i[2]))
+            tree_view_inventory.insert("", 'end', text ="L1",values =(i[0],i[1]))
         con.commit()
         con.close()
     except sqlite3.Error as err:
@@ -468,7 +474,7 @@ def display2():
     quantity={}
     for key,value in products.items():
         quantity[key]=value
-    Update(quantity)
+        Update(quantity)
 
 
 def clear_all2():
@@ -563,6 +569,7 @@ def pdf_output():
     #invoice
     pdf.set_font("Times",style="BU", size = 55)
     pdf.cell(93, 28, txt = "INVOICE",ln = 2, align = 'L', border=0)
+    
 
 
     #celspacer
@@ -596,7 +603,7 @@ def pdf_output():
 
     #row5
     pdf_arial()
-    pdf.cell(30, 7, txt = "{}".format("customer_name"),ln = 0, align = 'L', border=0)
+    pdf.cell(30, 7, txt = "{}".format(customer_name),ln = 0, align = 'L', border=0)
     cellspacer()
     pdf.cell(30, 7, txt = "{}".format("5th Street"),ln = 1, align = 'L', border=0)
     cellspacer()
