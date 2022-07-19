@@ -383,20 +383,30 @@ def window_2_frame_1():
         try:
             con=sqlite3.connect('Store_Data.sql')
             cur=con.cursor()
-            global product_name_window2
+            global product_name_window2,product_quantity
             product_name_window2=product_name_tb.get()
             product_quantity=product_quantity_tb.get()
             product_price=product_price_tb.get()
+            #Creates a table if not exists
             cur.execute("CREATE table if not exists inventory(productname varchar,quantity int,price int)")
+            
+            #returns a binary value 0 or 1 if the entered record is existing or not:"1 if existing, 0 if not exist"
+            cur.execute("SELECT COUNT(*) FROM inventory WHERE productname='{}'".format(product_name_window2))
+            boolean_if_in_database_inventory1=cur.fetchall()
+
+            #inserts the data into inventory database
             cur.execute("INSERT into inventory(productname,quantity,price)VALUES('{}',{},{})".format(product_name_window2,product_quantity,product_price))
+            
+            #Deletes the data if already existing
             cur.execute("DELETE FROM inventory WHERE rowid NOT IN (SELECT min(rowid) FROM inventory GROUP BY productname)")
+
+            #Updates the quantity if the data entered is existing
             cur.execute("SELECT quantity from inventory where productname='{}'".format(product_name_window2))
-            rec=cur.fetchall()
-            for i in rec:
-                print(i[0])
-            cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(i[0]+int(product_quantity),product_name_window2))
+            existing_quantity=cur.fetchall()
+            if boolean_if_in_database_inventory1[0][0]==1:
+                cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(existing_quantity[0][0]+int(product_quantity),product_name_window2))
+            
             con.commit()
-            con.close()
         except sqlite3.Error as err:
             print("Error- ",err)
     
