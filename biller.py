@@ -191,6 +191,7 @@ def frame_3():
         for key, value in selected_items.items():
             if key=='values':
                 product_price=value[2]
+                print(value)
         #unit_rate_tb.config(state="normal")
         unit_rate_tb.delete(0,END)
         unit_rate_tb.insert(0,product_price)
@@ -222,7 +223,7 @@ def frame_3():
         for item in tree_view_list.get_children():
             tree_view_list.delete(item)
         for key, value in data.items():
-           tree_view_list.insert("",'end',text="L1",values=(key, value[1]))
+           tree_view_list.insert("",'end',text="L1",values=(key, value[1], value[0]))
 
     product_name_tb.bind('<Key>', Scankey)
 
