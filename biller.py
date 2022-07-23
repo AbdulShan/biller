@@ -568,29 +568,39 @@ def window2():
 ##############################################################################################################
 #menu Bar
 #Bug Fixer
-def disable_menu_condition():
+def disable_inventory_condition():
     flag=True
     if flag==True:
-        file.entryconfig(1,state='disable')
-        file.entryconfig(0,state='normal')
+        menu.entryconfig(1,state='disable')
+        menu.entryconfig(0,state='normal')
         flag=False
 
-def enable_menu_condition():
+def enable_bill_condition():
     flag=True
     if flag==True:
-        file.entryconfig(1,state='normal')
-        file.entryconfig(0,state='disable')
+        menu.entryconfig(1,state='normal')
+        menu.entryconfig(0,state='disable')
+        flag=False
+
+def enable_bill_inventory_condition():
+    flag=True
+    if flag==True:
+        menu.entryconfig(1,state='normal')
+        menu.entryconfig(0,state='normal')
         flag=False
 #Bug Fixer^^^^^ for menubar
 
 menubar = Menu(root)
 
 #menus in menubar
-file = Menu(menubar, tearoff=0)
-menubar.add_cascade(label="Menu", menu=file)
-file.add_command(label="Add to Inventory",command=lambda:[clear_window1(),clear_all2(),display2(),make_inventory(),enable_menu_condition()])
-file.add_command(label="Make Bill",command=lambda:[clear_window2(),frame_3(),display2(),make_bill(),disable_menu_condition()])
-menubar.add_cascade(label="Exit", menu=exit)
+menu = Menu(menubar, tearoff=0)
+menubar.add_cascade(label="Menu", menu=menu)
+menu.add_command(label="Add to Inventory",command=lambda:[clear_window1(),clear_all2(),display2(),make_inventory(),enable_bill_condition()])
+menu.add_command(label="Make Bill",command=lambda:[clear_window2(),frame_3(),display2(),make_bill(),disable_inventory_condition()])
+
+view = Menu(menubar, tearoff=0)
+menubar.add_cascade(label="View", menu=view)
+view.add_command(label="Search Through database",command=lambda:[clear_window1(),clear_window2(),enable_bill_inventory_condition()])
 
 exit=Menu(menubar,tearoff=0)
 exit.add_command(label="exit")
@@ -716,7 +726,7 @@ def pdf_output():
 window1()
 window2()
 display2()
-disable_menu_condition()
+enable_bill_condition()
 #pdf_output()
 #To run the tkinter window
 root.mainloop()
