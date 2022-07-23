@@ -120,7 +120,7 @@ def frame_2():
     def fetch_data():
     #Creation and Insertion of the Data into the records
         #Takes the input from the textbox
-        global product_name,customer_name,customer_number,quantity_ins,unit_rate_ins,total_amount
+        global product_name,customer_name,customer_number,quantity_ins,unit_rate_ins,total_amount,product_name_tb
         product_name=product_name_tb.get()
         customer_number=customer_number_tb.get()
         customer_name=customer_name_tb.get()
@@ -353,6 +353,16 @@ def frame_5():
     printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[pdf_output(),drop_table(),clear_all()])
     printbill_btn.grid(row=0,column=3)
 
+def frame_6(message):
+    global message_frame
+    message_frame = LabelFrame(root, bg="white",fg="white")
+    message_frame.grid(row=5, column=0,sticky="w")
+
+    product_name_lbl=Label(message_frame,text=message,font=book_antiqua)
+    product_name_lbl.grid(row=0,column=1)
+
+
+
 #--------------------------------------------------------------------------------------------------------------------------------------------#
 #Inventory Window Object
 def window_2_frame_1():
@@ -480,7 +490,6 @@ def display2():
         con.close()
     except sqlite3.Error as err:
         print("Error- ",err)
-    
 
     quantity={}
     for key,value in products.items():
@@ -500,6 +509,7 @@ def make_bill():
     list_box_frame.grid(row=2,column=0,sticky="w")
     tv_frame.grid(row=3,column=0,sticky="w")
     del_total_frame.grid(row=4,column=0,sticky="w")
+    message_frame.grid(row=5,column=0,sticky="w")
 def make_inventory():
     top_frame_inventory.grid(row=0,column=0,sticky="w")
     tv_frame_inventory.grid(row=1, column=0,sticky="w")
@@ -512,6 +522,7 @@ def clear_window1():
     list_box_frame.grid_forget()
     tv_frame.grid_forget()
     del_total_frame.grid_forget()
+    message_frame.grid_forget()
 
 def clear_window2():
     top_frame_inventory.grid_forget()
@@ -525,6 +536,7 @@ def window1():
     frame_3()
     frame_4()
     frame_5()
+    frame_6("WELCOME")
 
 def window2():
     window_2_frame_1()
@@ -652,10 +664,26 @@ def pdf_output():
                 pdf.cell(30, 7, txt = "{}".format(i[2]),ln = 0, align = 'L', border=0)
                 pdf.cell(30, 7, txt = "{}".format(i[3]),ln = 0, align = 'L', border=0)
                 pdf.cell(30, 7, txt = "{}".format(i[4]),ln = 1, align = 'L', border=0)
+
+            cur.execute("SELECT COUNT(*) FROM inventory WHERE productname='{}'".format(product_name_tb))
+            boolean_if_in_database_bill=cur.fetchall()
+
+            cur.execute("SELECT quantity from inventory where productname='{}'".format(product_name))
+            existing_quantity1=cur.fetchall()
+            if boolean_if_in_database_bill[0][0]==0:
+                if existing_quantity1[0][0]<=0:
+                    print('stock is empty')
+                cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(existing_quantity1[0][0]-int(quantity_ins),product_name))
+                if existing_quantity1[0][0]<=int(quantity_ins):
+                    message="less than existing stock"
+                    frame_6(message)
+
             cur.execute("SELECT SUM(price1) FROM final_bill")
             total_pdf=cur.fetchall()
             total_pdf1=total_pdf[0]
-            
+            display2()
+            con.commit()
+            con.close()
     except sqlite3.Error as err:
         print("Error: ",err)
 
