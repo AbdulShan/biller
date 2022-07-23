@@ -670,11 +670,13 @@ def pdf_output():
 
             cur.execute("SELECT quantity from inventory where productname='{}'".format(product_name))
             existing_quantity1=cur.fetchall()
+            temp_existing_quantity1=existing_quantity1[0][0]
             if boolean_if_in_database_bill[0][0]==0:
                 if existing_quantity1[0][0]<=0:
                     print('stock is empty')
                 cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(existing_quantity1[0][0]-int(quantity_ins),product_name))
                 if existing_quantity1[0][0]<=int(quantity_ins):
+                    cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(temp_existing_quantity1,product_name))
                     message="less than existing stock"
                     frame_6(message)
 
