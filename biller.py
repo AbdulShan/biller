@@ -114,7 +114,7 @@ def frame_2():
     total_amount_tb.grid(row=1,column=4)
 
     #Submit
-    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[fetch_data(),clear_all(),display()])
+    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[fetch_data(),clear_all(),bill_condition()])
     enter.grid(row=1,column=5)
 
     def fetch_data():
@@ -151,6 +151,25 @@ def frame_2():
             cur.execute("INSERT into customer_data(bill_num,date,customer_number,customer_name,sl_no,productname,quantity,unit_rate,price)VALUES({},'{}',{},'{}',{},'{}',{},{},{})".format(bill_number,datesorted,customer_number,customer_name,count,product_name,quantity_ins,unit_rate_ins,total_amount))
             con.commit()
             con.close()
+        except sqlite3.Error as err:
+            print("Error - ",err)
+    
+    def bill_condition():
+        try:
+            con=sqlite3.connect("Store_Data.sql")
+            cur=con.cursor()
+            cur.execute("SELECT COUNT(*) FROM inventory WHERE productname='{}'".format(product_name_tb))
+            boolean_if_in_database_bill=cur.fetchall()
+
+            cur.execute("SELECT quantity from inventory where productname='{}'".format(product_name))
+            existing_quantity1=cur.fetchall()
+            temp_existing_quantity1=existing_quantity1[0][0]
+            if boolean_if_in_database_bill[0][0]==0:
+                if existing_quantity1[0][0]<=int(quantity_ins):
+                    cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(temp_existing_quantity1,product_name))
+                    frame_6("Existing quantity:{}, is less than than Buying Quantity:{}".format(existing_quantity1[0][0],quantity_ins))
+                else:
+                    display()
         except sqlite3.Error as err:
             print("Error - ",err)
 
@@ -664,21 +683,6 @@ def pdf_output():
                 pdf.cell(30, 7, txt = "{}".format(i[2]),ln = 0, align = 'L', border=0)
                 pdf.cell(30, 7, txt = "{}".format(i[3]),ln = 0, align = 'L', border=0)
                 pdf.cell(30, 7, txt = "{}".format(i[4]),ln = 1, align = 'L', border=0)
-
-            cur.execute("SELECT COUNT(*) FROM inventory WHERE productname='{}'".format(product_name_tb))
-            boolean_if_in_database_bill=cur.fetchall()
-
-            cur.execute("SELECT quantity from inventory where productname='{}'".format(product_name))
-            existing_quantity1=cur.fetchall()
-            temp_existing_quantity1=existing_quantity1[0][0]
-            if boolean_if_in_database_bill[0][0]==0:
-                if existing_quantity1[0][0]<=0:
-                    print('stock is empty')
-                cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(existing_quantity1[0][0]-int(quantity_ins),product_name))
-                if existing_quantity1[0][0]<=int(quantity_ins):
-                    cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(temp_existing_quantity1,product_name))
-                    message="less than existing stock"
-                    frame_6(message)
 
             cur.execute("SELECT SUM(price1) FROM final_bill")
             total_pdf=cur.fetchall()
