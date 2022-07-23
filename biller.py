@@ -165,11 +165,14 @@ def frame_2():
             existing_quantity1=cur.fetchall()
             temp_existing_quantity1=existing_quantity1[0][0]
             if boolean_if_in_database_bill[0][0]==0:
+                cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(existing_quantity1[0][0]-int(quantity_ins),product_name))
                 if existing_quantity1[0][0]<=int(quantity_ins):
-                    cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(temp_existing_quantity1,product_name))
                     frame_6("Existing quantity:{}, is less than than Buying Quantity:{}".format(existing_quantity1[0][0],quantity_ins))
                 else:
+                    cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(existing_quantity1[0][0]-int(quantity_ins),product_name))
+                    con.commit()
                     display()
+            con.close()
         except sqlite3.Error as err:
             print("Error - ",err)
 
