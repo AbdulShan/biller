@@ -2,6 +2,8 @@
 from ast import Break
 from asyncio.windows_events import NULL
 import datetime
+from msilib.schema import Condition
+from optparse import Values
 from tkinter import *
 import sqlite3
 from tkinter.ttk import Treeview
@@ -114,7 +116,7 @@ def frame_2():
     total_amount_tb.grid(row=1,column=4)
 
     #Submit
-    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[fetch_data(),clear_all(),bill_condition()])
+    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[fetch_data(),clear_all(tree_view),bill_condition()])
     enter.grid(row=1,column=5)
 
     def fetch_data():
@@ -317,9 +319,9 @@ def frame_4():
     
     #to clear the Tree view
     global clear_all
-    def clear_all():
-        for item in tree_view.get_children():
-            tree_view.delete(item)
+    def clear_all(data):
+        for item in data.get_children():
+            data.delete(item)
 
 ###############################################################################################################
 #Bottom Frame
@@ -372,7 +374,7 @@ def frame_5():
     total_tb.grid(row=0,column=2)
 
     #Print Bill
-    printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[pdf_output(),drop_table(),clear_all()])
+    printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[pdf_output(),drop_table(),clear_all(tree_view)])
     printbill_btn.grid(row=0,column=3)
 
 def frame_6(message):
@@ -444,7 +446,7 @@ def window_2_frame_1():
             print("Error- ",err)
     
     #submit
-    submit_button=Button(top_frame_inventory,text="Submit",command=lambda:[clear_all2(),save_to_inventory(),display2()])
+    submit_button=Button(top_frame_inventory,text="Submit",command=lambda:[clear_all(tree_view_inventory),save_to_inventory(),display2()])
     submit_button.grid(row=1,column=3)
 
 ############################################################################################
@@ -518,46 +520,43 @@ def display2():
         quantity[key]=value
         Update(quantity)
 
-
-def clear_all2():
-    for item in tree_view_inventory.get_children():
-        tree_view_inventory.delete(item)
-
 ##############################################################################################
 #Search through database
 def search_through_database():
-    Search_database_frame  = LabelFrame(root, bg="white",fg="white")
-    Search_database_frame.grid(row=0, column=0,sticky="w")
+    global search_database_frame
+    search_database_frame  = LabelFrame(root, bg="white",fg="white")
+    search_database_frame.grid(row=0, column=0,sticky="w")
 
-    by_cutomernumber=Label(Search_database_frame,text="Customer Number",font=book_antiqua)
-    by_cutomernumber.grid(row=0,column=0,sticky="w")
-    by_cutomernumber=Entry(Search_database_frame,font=arial)
-    by_cutomernumber.grid(row=0,column=1)
+    by_customernumberlbl=Label(search_database_frame,text="Customer Number",font=book_antiqua)
+    by_customernumberlbl.grid(row=0,column=0,sticky="w")
+    by_customernumbertb=Entry(search_database_frame,font=arial)
+    by_customernumbertb.grid(row=0,column=1)
 
-    by_cutomername=Label(Search_database_frame,text="Customer Name",font=book_antiqua)
-    by_cutomername.grid(row=1,column=0,sticky="w")
-    by_cutomername=Entry(Search_database_frame,font=arial)
-    by_cutomername.grid(row=1,column=1)
+    by_customernamelbl=Label(search_database_frame,text="Customer Name",font=book_antiqua)
+    by_customernamelbl.grid(row=1,column=0,sticky="w")
+    by_customernametb=Entry(search_database_frame,font=arial)
+    by_customernametb.grid(row=1,column=1)
 
-    by_productname=Label(Search_database_frame,text="Product Name",font=book_antiqua)
-    by_productname.grid(row=2,column=0,sticky="w")
-    by_productname=Entry(Search_database_frame,font=arial)
-    by_productname.grid(row=2,column=1)
+    by_productnamelbl=Label(search_database_frame,text="Product Name",font=book_antiqua)
+    by_productnamelbl.grid(row=2,column=0,sticky="w")
+    by_productnametb=Entry(search_database_frame,font=arial)
+    by_productnametb.grid(row=2,column=1)
 
-    by_billno=Label(Search_database_frame,text="Bill No",font=book_antiqua)
-    by_billno.grid(row=3,column=0,sticky="w")
-    by_billno=Entry(Search_database_frame,font=arial)
-    by_billno.grid(row=3,column=1)
+    by_billnolbl=Label(search_database_frame,text="Bill No",font=book_antiqua)
+    by_billnolbl.grid(row=3,column=0,sticky="w")
+    by_billnotb=Entry(search_database_frame,font=arial)
+    by_billnotb.grid(row=3,column=1)
 
-    by_date=Label(Search_database_frame,text="Date",font=book_antiqua)
-    by_date.grid(row=4,column=0,sticky="w")
-    by_date=Entry(Search_database_frame,font=arial)
-    by_date.grid(row=4,column=1)
+    by_datelbl=Label(search_database_frame,text="Date",font=book_antiqua)
+    by_datelbl.grid(row=4,column=0,sticky="w")
+    by_datetb=Entry(search_database_frame,font=arial)
+    by_datetb.grid(row=4,column=1)
 
-    search=Button(Search_database_frame,text="Search",padx=10,pady=5,command=lambda:[])
-    search.grid(row=5,column=1,sticky="w")
+    searchbtn=Button(search_database_frame,text="Search",padx=10,pady=5,command=lambda:[search()])
+    searchbtn.grid(row=5,column=1,sticky="w")
 
     ############################## Display search result tree view
+    global search_displayframe
     search_displayframe=LabelFrame(root,bg="white",fg="white")
     search_displayframe.grid(row=1,column=0,sticky="w")
 
@@ -591,7 +590,72 @@ def search_through_database():
     tv_search.heading("8",text="Unit Rate")
     tv_search.heading("9",text="Price")
 
+    
+    def search():
+        by_customernumber=by_customernumbertb.get()
+        by_date=by_datetb.get()
+        by_billno=by_billnotb.get()
+        by_customername=by_customernametb.get()
+        by_productname=by_productnametb.get()
+        
+        scanlist={"bill_num":by_billno,"date":by_date,"customer_number":by_customernumber,"customer_name":by_customername,"productname":by_productname}
+        search_list_key=[]
+        search_list_value=[]
+        for search_key,search_value in scanlist.items():
+            if search_value!="":
+                search_list_key.append(search_key)
+                search_list_value.append(search_value)
 
+        try:
+            con=sqlite3.connect("Store_Data.sql")
+            cur=con.cursor()
+            print(search_list_key[0])
+            print(search_list_value[0])
+            if len(search_list_key)==0:
+                print("Empty textbox")
+            elif len(search_list_key)==1:
+                clear_all(tv_search)
+                cur.execute("SELECT bill_num,date,customer_number,customer_name,productname,quantity,unit_rate,price from customer_data where {}='{}'".format(search_list_key[0],search_list_value[0]))
+                rec=cur.fetchall()
+                count=1
+                for i in rec:
+                    tv_search.insert("", 'end', text ="L1",values =(count,i[0],i[1],i[2],i[3],i[4],i[5],i[6]))
+                    count+=1
+            elif len(search_list_key)==2:
+                clear_all(tv_search)
+                cur.execute("SELECT bill_num,date,customer_number,customer_name,productname,quantity,unit_rate,price from customer_data where {}='{}' AND {}='{}'".format(search_list_key[0],search_list_value[0],search_list_key[1],search_list_value[1]))
+                rec=cur.fetchall()
+                count=1
+                for i in rec:
+                    tv_search.insert("", 'end', text ="L1",values =(count,i[0],i[1],i[2],i[3],i[4],i[5],i[6]))
+                    count+=1
+            elif len(search_list_key)==3:
+                clear_all(tv_search)
+                cur.execute("SELECT bill_num,date,customer_number,customer_name,productname,quantity,unit_rate,price from customer_data where {}='{}' AND {}='{}' AND {}='{}'".format(search_list_key[0],search_list_value[0],search_list_key[1],search_list_value[1],search_list_key[2],search_list_value[2]))
+                rec=cur.fetchall()
+                count=1
+                for i in rec:
+                    tv_search.insert("", 'end', text ="L1",values =(count,i[0],i[1],i[2],i[3],i[4],i[5],i[6]))
+                    count+=1
+            elif len(search_list_key)==4:
+                clear_all(tv_search)
+                cur.execute("SELECT bill_num,date,customer_number,customer_name,productname,quantity,unit_rate,price from customer_data where {}='{}' AND {}='{}' AND {}='{}' AND {}='{}'".format(search_list_key[0],search_list_value[0],search_list_key[1],search_list_value[1],search_list_key[2],search_list_value[2],search_list_key[3],search_list_value[3]))
+                rec=cur.fetchall()
+                count=1
+                for i in rec:
+                    tv_search.insert("", 'end', text ="L1",values =(count,i[0],i[1],i[2],i[3],i[4],i[5],i[6]))
+                    count+=1
+            elif len(search_list_key)==5:
+                clear_all(tv_search)
+                cur.execute("SELECT bill_num,date,customer_number,customer_name,productname,quantity,unit_rate,price from customer_data where {}='{}' AND {}='{}' AND {}='{}' AND {}='{}' AND {}='{}'" .format(search_list_key[0],search_list_value[0],search_list_key[1],search_list_value[1],search_list_key[2],search_list_value[2],search_list_key[3],search_list_value[3],search_list_key[4],search_list_value[4]))
+                rec=cur.fetchall()
+                count=1
+                for i in rec:
+                    tv_search.insert("", 'end', text ="L1",values =(count,i[0],i[1],i[2],i[3],i[4],i[5],i[6]))
+                    count+=1
+            con.close()
+        except sqlite3.Error as err:
+            print("Error - ",err)
 
 ###########################################################################################
 #shows all the widget Bill window and Inventory window
@@ -621,6 +685,10 @@ def clear_window2():
     tv_frame_inventory.grid_forget()
     edit_frame_inventory.grid_forget()
 
+def clear_searchwindow():
+    search_database_frame.grid_forget()
+    search_displayframe.grid_forget()
+
 ##############################################################################################################
 def window1():
     frame_1()
@@ -635,29 +703,30 @@ def window2():
     window_2_frame_2()
     window_2_frame_3()
 
+def window_search():
+    search_through_database()
+
 ##############################################################################################################
 #menu Bar
 #Bug Fixer
-def disable_inventory_condition():
-    flag=True
-    if flag==True:
-        menu.entryconfig(1,state='disable')
-        menu.entryconfig(0,state='normal')
-        flag=False
-
-def enable_bill_condition():
-    flag=True
-    if flag==True:
-        menu.entryconfig(1,state='normal')
+def enabledisable_menucondition(conditiondata):
+    flag=conditiondata
+    if flag=='inventory':
         menu.entryconfig(0,state='disable')
+        menu.entryconfig(1,state='normal')
+        view.entryconfig(0,state='normal')
+        flag=False
+    elif flag=='bill':
+        menu.entryconfig(0,state='normal')
+        menu.entryconfig(1,state='disable')
+        view.entryconfig(0,state='normal')
+        flag=False
+    elif flag=='search':
+        menu.entryconfig(0,state='normal')
+        menu.entryconfig(1,state='normal')
+        view.entryconfig(0,state='disable')
         flag=False
 
-def enable_bill_inventory_condition():
-    flag=True
-    if flag==True:
-        menu.entryconfig(1,state='normal')
-        menu.entryconfig(0,state='normal')
-        flag=False
 #Bug Fixer^^^^^ for menubar
 
 menubar = Menu(root)
@@ -665,12 +734,12 @@ menubar = Menu(root)
 #menus in menubar
 menu = Menu(menubar, tearoff=0)
 menubar.add_cascade(label="Menu", menu=menu)
-menu.add_command(label="Add to Inventory",command=lambda:[clear_window1(),clear_all2(),display2(),make_inventory(),enable_bill_condition()])
-menu.add_command(label="Make Bill",command=lambda:[clear_window2(),frame_3(),display2(),make_bill(),disable_inventory_condition()])
+menu.add_command(label="Add to Inventory",command=lambda:[clear_window1(),clear_searchwindow(),clear_all(tree_view_inventory),display2(),make_inventory(),enabledisable_menucondition('inventory')])
+menu.add_command(label="Make Bill",command=lambda:[clear_window2(),clear_searchwindow(),frame_3(),display2(),make_bill(),enabledisable_menucondition('bill')])
 
 view = Menu(menubar, tearoff=0)
 menubar.add_cascade(label="View", menu=view)
-view.add_command(label="Search Through database",command=lambda:[clear_window1(),clear_window2(),search_through_database(),enable_bill_inventory_condition()])
+view.add_command(label="Search Through database",command=lambda:[clear_window1(),clear_window2(),search_through_database(),enabledisable_menucondition('search')])
 
 exit=Menu(menubar,tearoff=0)
 exit.add_command(label="exit")
@@ -795,8 +864,11 @@ def pdf_output():
 
 window1()
 window2()
+
+window_search()
+clear_searchwindow()
+
 display2()
-enable_bill_condition()
-#pdf_output()
+enabledisable_menucondition('bill')
 #To run the tkinter window
 root.mainloop()
