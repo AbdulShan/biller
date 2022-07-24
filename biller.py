@@ -498,7 +498,7 @@ def window_2_frame_3():
             print("Error- ",err)
 
         tree_view_inventory.delete(curItem)
-#----------------------------------------------------------------------------------------------------- work in progress
+################################################################################################
 def display2():
     try:
         con=sqlite3.connect('Store_Data.sql')
@@ -522,6 +522,76 @@ def display2():
 def clear_all2():
     for item in tree_view_inventory.get_children():
         tree_view_inventory.delete(item)
+
+##############################################################################################
+#Search through database
+def search_through_database():
+    Search_database_frame  = LabelFrame(root, bg="white",fg="white")
+    Search_database_frame.grid(row=0, column=0,sticky="w")
+
+    by_cutomernumber=Label(Search_database_frame,text="Customer Number",font=book_antiqua)
+    by_cutomernumber.grid(row=0,column=0,sticky="w")
+    by_cutomernumber=Entry(Search_database_frame,font=arial)
+    by_cutomernumber.grid(row=0,column=1)
+
+    by_cutomername=Label(Search_database_frame,text="Customer Name",font=book_antiqua)
+    by_cutomername.grid(row=1,column=0,sticky="w")
+    by_cutomername=Entry(Search_database_frame,font=arial)
+    by_cutomername.grid(row=1,column=1)
+
+    by_productname=Label(Search_database_frame,text="Product Name",font=book_antiqua)
+    by_productname.grid(row=2,column=0,sticky="w")
+    by_productname=Entry(Search_database_frame,font=arial)
+    by_productname.grid(row=2,column=1)
+
+    by_billno=Label(Search_database_frame,text="Bill No",font=book_antiqua)
+    by_billno.grid(row=3,column=0,sticky="w")
+    by_billno=Entry(Search_database_frame,font=arial)
+    by_billno.grid(row=3,column=1)
+
+    by_date=Label(Search_database_frame,text="Date",font=book_antiqua)
+    by_date.grid(row=4,column=0,sticky="w")
+    by_date=Entry(Search_database_frame,font=arial)
+    by_date.grid(row=4,column=1)
+
+    search=Button(Search_database_frame,text="Search",padx=10,pady=5,command=lambda:[])
+    search.grid(row=5,column=1,sticky="w")
+
+    ############################## Display search result tree view
+    search_displayframe=LabelFrame(root,bg="white",fg="white")
+    search_displayframe.grid(row=1,column=0,sticky="w")
+
+    tv_search= Treeview(search_displayframe,selectmode='browse')
+    tv_search.grid(row=0,column=0)
+
+    vertical_scrollbar=Scrollbar(search_displayframe,orient="vertical",command=tv_search.yview)
+    vertical_scrollbar.grid(row=0,column=1)
+    tv_search.configure(xscrollcommand=vertical_scrollbar.set)
+
+    tv_search["columns"]=("1","2","3","4","5","6","7","8","9")
+    tv_search["show"]='headings'
+
+    tv_search.column("1",width=50)
+    tv_search.column("2",width=100)
+    tv_search.column("3",width=100)
+    tv_search.column("4",width=150)
+    tv_search.column("5",width=150)
+    tv_search.column("6",width=150)
+    tv_search.column("7",width=80)
+    tv_search.column("8",width=100)
+    tv_search.column("9",width=120)
+
+    tv_search.heading("1",text="sl.no")
+    tv_search.heading("2",text="Bill No")
+    tv_search.heading("3",text="Date")
+    tv_search.heading("4",text="Customer Number")
+    tv_search.heading("5",text="Customer Name")
+    tv_search.heading("6",text="Product Name")
+    tv_search.heading("7",text="Quantity")
+    tv_search.heading("8",text="Unit Rate")
+    tv_search.heading("9",text="Price")
+
+
 
 ###########################################################################################
 #shows all the widget Bill window and Inventory window
@@ -600,7 +670,7 @@ menu.add_command(label="Make Bill",command=lambda:[clear_window2(),frame_3(),dis
 
 view = Menu(menubar, tearoff=0)
 menubar.add_cascade(label="View", menu=view)
-view.add_command(label="Search Through database",command=lambda:[clear_window1(),clear_window2(),enable_bill_inventory_condition()])
+view.add_command(label="Search Through database",command=lambda:[clear_window1(),clear_window2(),search_through_database(),enable_bill_inventory_condition()])
 
 exit=Menu(menubar,tearoff=0)
 exit.add_command(label="exit")
