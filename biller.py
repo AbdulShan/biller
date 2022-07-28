@@ -1,17 +1,13 @@
 #All necessary Packages
-from ast import Break
-from asyncio.windows_events import NULL
 import datetime
-from msilib.schema import Condition
-from optparse import Values
 from tkinter import *
 import sqlite3
 from tkinter.ttk import Treeview
 import atexit
 from os import path
-from turtle import left
 import fpdf
 from json import dumps, loads
+import atexit
 
 #font
 book_antiqua=("Book Antiqua",12,"bold")
@@ -30,7 +26,6 @@ def write_counter():
     with open("counter.json", "w") as f:
         f.write(dumps(bill_number))
 bill_number = read_counter()
-atexit.register(write_counter)
 
 #Tkinter window configs
 if "__main__"==__name__:
@@ -72,9 +67,15 @@ def frame_1():
     bill_number_lbl=Label(top_frame,text="Bill Number",font=book_antiqua)
     bill_number_lbl.grid(row=0,column=2)
     bill_number_tb=Entry(top_frame,font=arial)
+    bill_number_tb.config(state='normal')
     bill_number_tb.insert(0,bill_number)
     bill_number_tb.config(state='disabled')
     bill_number_tb.grid(row=1,column=2)
+
+    global button_frame
+    button_frame = LabelFrame(root, bg="white",fg="white")
+    button_frame.grid(row=0, column=1,sticky="w")
+
 
 #Mid frame Designs
 ################################################################################
@@ -106,17 +107,17 @@ def frame_2():
     unit_rate_lbl=Label(mid_frame,text="Unit Rate",font=book_antiqua)
     unit_rate_lbl.grid(row=0,column=3)
     global unit_rate_tb
-    unit_rate_tb=Entry(mid_frame,font=arial)#,state="disable")
+    unit_rate_tb=Entry(mid_frame,font=arial,state="disable")
     unit_rate_tb.grid(row=1,column=3)
 
     #total amount
     total_amount_lbl=Label(mid_frame,text="Total Amount",font=book_antiqua)
     total_amount_lbl.grid(row=0,column=4)
-    total_amount_tb=Entry(mid_frame,font=arial)
+    total_amount_tb=Entry(mid_frame,font=arial,state="disable")
     total_amount_tb.grid(row=1,column=4)
 
     #Submit
-    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[fetch_data(),clear_all(tree_view),bill_condition()])
+    enter=Button(mid_frame,text="Enter",padx=10,pady=5,command=lambda:[clear_all(tree_view),fetch_data()])
     enter.grid(row=1,column=5)
 
     def fetch_data():
@@ -130,9 +131,11 @@ def frame_2():
         unit_rate_ins=unit_rate_tb.get()
         
         #Displays the total amount when clicked the #submit BUTTON
+        total_amount_tb.config(state="normal")
         total_amount_tb.delete(0,END)
         total_amount=float(quantity_ins)*float(unit_rate_ins)
         total_amount_tb.insert(0,total_amount)
+        total_amount_tb.config(state="disable")
 
         #To clear the textbox after clicking the button
         '''product_id_tb.delete('0', END)
@@ -146,11 +149,12 @@ def frame_2():
             con=sqlite3.connect("Store_Data.sql")
             cur=con.cursor()
             customer_number=customer_number_tb.get()
-            cur.execute("create table if not exists customer_data(bill_num int ,date varchar(15),customer_number int,customer_name varchar(30),sl_no int,productname varchar,quantity int,unit_rate int,price int)")
+            cur.execute("create table if not exists customer_data(bill_num int ,date varchar(15),customer_number int(10),customer_name varchar(30),sl_no int,productname varchar,quantity int,unit_rate int,price int)")
             cur.execute("SELECT * from customer_data".format(customer_number))
             global count
             count=(len(cur.fetchall())+1)
-            cur.execute("INSERT into customer_data(bill_num,date,customer_number,customer_name,sl_no,productname,quantity,unit_rate,price)VALUES({},'{}',{},'{}',{},'{}',{},{},{})".format(bill_number,datesorted,customer_number,customer_name,count,product_name,quantity_ins,unit_rate_ins,total_amount))
+            #cur.execute("INSERT into customer_data(bill_num,date,customer_number,customer_name,sl_no,productname,quantity,unit_rate,price)VALUES({},'{}',{},'{}',{},'{}',{},{},{})".format(bill_number,datesorted,customer_number,customer_name,count,product_name,quantity_ins,unit_rate_ins,total_amount))
+            bill_condition()
             con.commit()
             con.close()
         except sqlite3.Error as err:
@@ -170,11 +174,18 @@ def frame_2():
                 cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(existing_quantity1[0][0]-int(quantity_ins),product_name))
                 if existing_quantity1[0][0]<=int(quantity_ins):
                     frame_6("Existing quantity:{}, is less than than Buying Quantity:{}".format(existing_quantity1[0][0],quantity_ins))
+                    cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(temp_existing_quantity1,product_name))
+                    con.commit()
+                    display()
+                    con.close()
+                    
                 else:
+                    cur.execute("INSERT into customer_data(bill_num,date,customer_number,customer_name,sl_no,productname,quantity,unit_rate,price)VALUES({},'{}',{},'{}',{},'{}',{},{},{})".format(bill_number,datesorted,customer_number,customer_name,count,product_name,quantity_ins,unit_rate_ins,total_amount))
                     cur.execute("UPDATE inventory SET quantity={} where productname='{}'".format(existing_quantity1[0][0]-int(quantity_ins),product_name))
                     con.commit()
                     display()
-            con.close()
+                    con.close()
+                    
         except sqlite3.Error as err:
             print("Error - ",err)
 
@@ -215,11 +226,10 @@ def frame_3():
         for key, value in selected_items.items():
             if key=='values':
                 product_price=value[2]
-                print(value)
-        #unit_rate_tb.config(state="normal")
+        unit_rate_tb.config(state="normal")
         unit_rate_tb.delete(0,END)
         unit_rate_tb.insert(0,product_price)
-        #unit_rate_tb.config(state="disable")
+        unit_rate_tb.config(state="disable")
         
     
     tree_view_list.bind('<ButtonRelease>',selectItem)
@@ -228,11 +238,11 @@ def frame_3():
     products={}
     def Scankey(event):
         #val stores the selected value
-        #unit_rate_tb.config(state="normal")
+        unit_rate_tb.config(state="normal")
         unit_rate_tb.delete(0,END)
-        #unit_rate_tb.config(state="disable")
+        unit_rate_tb.config(state="disable")
         val = event.widget.get()
-        if val==NULL:
+        if val=="":
             name_data = products
         else:
             name_data = {}
@@ -295,9 +305,10 @@ def frame_4():
         try:
             con=sqlite3.connect('Store_Data.sql')
             cur=con.cursor()
-            customer_number=customer_number_tb.get()
-            cur.execute("CREATE TABLE IF NOT EXISTS final_bill(bill_num1 int,productname1 varchar,quantity1 int,unit_rate1 int,price1 int)")
-            cur.execute("INSERT INTO final_bill(bill_num1,productname1,quantity1,unit_rate1,price1)VALUES({},'{}',{},{},{})".format(bill_number,product_name,quantity_ins,unit_rate_ins,total_amount))
+            cur.execute("CREATE TABLE IF NOT EXISTS final_bill(sl_no1 int,bill_num1 int,productname1 varchar,quantity1 int,unit_rate1 int,price1 int)")
+            cur.execute("SELECT * from final_bill where bill_num1={}".format(bill_number))
+            count1=(len(cur.fetchall())+1)
+            cur.execute("INSERT INTO final_bill(sl_no1,bill_num1,productname1,quantity1,unit_rate1,price1)VALUES({},{},'{}',{},{},{})".format(count1,bill_number,product_name,quantity_ins,unit_rate_ins,total_amount))
             #print all the inserted data into the tree view
             cur.execute("SELECT rowid,productname1,quantity1,unit_rate1,price1 FROM final_bill where bill_num1={}".format(bill_number))
             rec=cur.fetchall()
@@ -307,7 +318,7 @@ def frame_4():
 
 
             #print the total
-            cur.execute("SELECT SUM(price1) FROM final_bill")
+            cur.execute("SELECT SUM(price1) FROM final_bill where bill_num1={}".format(bill_number))
             rows=cur.fetchall()
             for i in rows:
                 total_tb.delete(0, END)
@@ -342,24 +353,34 @@ def frame_5():
         for key, value in selected_items.items():
             if key == 'values':
                 k=value[0]
+                pr_name=value[1]
+                pr_qty=value[2]
+                pr_price=value[3]
+                print(value)
 
         #deletes the selected item from database
         try:
             con=sqlite3.connect('Store_Data.sql')
             cur=con.cursor()
-            customer_number=customer_number_tb.get()
-            cur.execute("DELETE FROM customer_data where sl_no={}".format(k))
+            cur.execute("DELETE FROM customer_data where sl_no={} AND productname='{}' AND quantity={} AND price={}".format(k,pr_name,pr_qty,pr_price))
+            con.commit()
+            cur.execute("DELETE FROM final_bill where sl_no1={} AND productname1='{}' AND quantity1={} AND price1={}".format(k,pr_name,pr_qty,pr_price))
+            cur.execute("SELECT sl_no1,bill_num1,productname1,quantity1,unit_rate1,price1 FROM final_bill")
+            row=cur.fetchall()
+            for i in row:
+                print(i[0],"    ",i[1],"    ",i[2],"    ",i[3],"    ",i[4],"    ",i[5],"    ")
             con.commit()
             con.close()
         except sqlite3.Error as err:
             print("Error- ",err)
         tree_view.delete(curItem)
     
+    global drop_table
     def drop_table():
         try:
             con=sqlite3.connect('Store_Data.sql')
             cur=con.cursor()
-            cur.execute("DROP TABLE final_bill")
+            cur.execute("DELETE from final_bill")
             con.commit()
             con.close()
         except sqlite3.Error as err:
@@ -374,7 +395,7 @@ def frame_5():
     total_tb.grid(row=0,column=2)
 
     #Print Bill
-    printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[pdf_output(),drop_table(),clear_all(tree_view)])
+    printbill_btn=Button(del_total_frame,text="Print Bill",command=lambda:[pdf_output(),drop_table(),write_counter,clear_all(tree_view)])
     printbill_btn.grid(row=0,column=3)
 
 def frame_6(message):
@@ -400,6 +421,7 @@ def window_2_frame_1():
     product_name_lbl.grid(row=0,column=0)
     product_name_tb=Entry(top_frame_inventory,font=arial)
     product_name_tb.grid(row=1,column=0)
+    product_name_tb.focus_set()
 
     #product Quantity
     product_quantity_lbl=Label(top_frame_inventory,text="Quantity",font=book_antiqua)
@@ -413,6 +435,12 @@ def window_2_frame_1():
     product_price_lbl.grid(row=0,column=2)
     product_price_tb=Entry(top_frame_inventory,font=arial)
     product_price_tb.grid(row=1,column=2)
+
+    def clear_entry():
+        product_name_tb.delete(0,END)
+        product_quantity_tb.delete(0,END)
+        product_price_tb.delete(0,END)
+        product_name_tb.focus_set()
 
     def save_to_inventory():
         try:
@@ -448,6 +476,9 @@ def window_2_frame_1():
     #submit
     submit_button=Button(top_frame_inventory,text="Submit",command=lambda:[clear_all(tree_view_inventory),save_to_inventory(),display2()])
     submit_button.grid(row=1,column=3)
+
+    clear_button=Button(top_frame_inventory,text="Clear All",command=lambda:[clear_entry()])
+    clear_button.grid(row=1,column=4)
 
 ############################################################################################
 #TreeView frame to display the inventory Database
@@ -609,8 +640,6 @@ def search_through_database():
         try:
             con=sqlite3.connect("Store_Data.sql")
             cur=con.cursor()
-            print(search_list_key[0])
-            print(search_list_value[0])
             if len(search_list_key)==0:
                 print("Empty textbox")
             elif len(search_list_key)==1:
@@ -845,8 +874,6 @@ def pdf_output():
     except sqlite3.Error as err:
         print("Error: ",err)
 
-
-    
     pdf.cell(30, 7, txt = "{}".format("-----------------------------------------------------------------------------------------------------------------------------"),ln = 1, align = 'L', border=0)
     pdf.cell(10, 7,ln = 0, align = 'L', border=0)
     cellspacer()
@@ -870,5 +897,6 @@ clear_searchwindow()
 
 display2()
 enabledisable_menucondition('bill')
+atexit.register(drop_table)
 #To run the tkinter window
 root.mainloop()
